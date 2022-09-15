@@ -10,7 +10,7 @@
 
 $ErrorActionPreference = "SilentlyContinue"
 #------------------------------------------------------------------#
-#- Remove-CacheFiles Function                                               #
+#- Remove-CacheFiles Function #ALMAZ                                              #
 #------------------------------------------------------------------#
 Function Remove-CacheFiles {
     param([Parameter(Mandatory=$true)][string]$path)    
@@ -56,7 +56,7 @@ Function Remove-CacheFiles {
 
 
 #------------------------------------------------------------------#
-#- Clear-EdgeCache Function                                                #
+#- Clear-EdgeCache Function #ALMAZ                                                #
 #------------------------------------------------------------------#
 
 
