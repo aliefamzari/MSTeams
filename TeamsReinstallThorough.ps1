@@ -145,9 +145,6 @@ elseif ($challenge -eq "Y"){
         RunDll32.exe InetCpl.cpl, ClearMyTracksByProcess 8
         RunDll32.exe InetCpl.cpl, ClearMyTracksByProcess 2
         Get-ChildItem -Path $env:LOCALAPPDATA"\Microsoft\Edge\User Data\Default\Cache"  | Remove-Item -Confirm:$false 
-        Get-ChildItem -Path $env:LOCALAPPDATA"\Google\Chrome\User Data\Default\Cookies" -File  | Remove-Item -Confirm:$false 
-        Get-ChildItem -Path $env:LOCALAPPDATA"\Google\Chrome\User Data\Default\Web Data" -File  | Remove-Item -Confirm:$false 
-        Start-Sleep 3
         Write-Host "IE and Edge Cleaned" -ForegroundColor Green
     }
     
