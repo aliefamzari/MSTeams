@@ -1,5 +1,6 @@
 ##### Script based on the great works of XSIOL. #####
 ##### Formatting, commenting, modifications and merging of the scripts done by TOBKO. #####
+## ALMAZ -  Update script to support Chromium Edge cache removal
 
 ##################################
 ##################################
