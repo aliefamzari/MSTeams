@@ -9,69 +9,7 @@
 ##################################
 
 $ErrorActionPreference = "SilentlyContinue"
-#------------------------------------------------------------------#
-#- Remove-CacheFiles Function #ALMAZ                                              #
-#------------------------------------------------------------------#
-Function Remove-CacheFiles {
-    param([Parameter(Mandatory=$true)][string]$path)    
-    BEGIN 
-    {
-        $originalVerbosePreference = $VerbosePreference
-        $VerbosePreference = 'Continue'  
-    }
-    PROCESS 
-    {
-        if((Test-Path $path))
-        {
-            if([System.IO.Directory]::Exists($path))
-            {
-                try 
-                {
-                    if($path[-1] -eq '\')
-                    {
-                        [int]$pathSubString = $path.ToCharArray().Count - 1
-                        $sanitizedPath = $path.SubString(0, $pathSubString)
-                        Remove-Item -Path "$sanitizedPath\*" -Recurse -Force  -Verbose
-                    }
-                    else 
-                    {
-                        Remove-Item -Path "$path\*" -Recurse -Force  -Verbose              
-                    } 
-                } catch { }
-            }
-            else 
-            {
-                try 
-                {
-                    Remove-Item -Path $path -Force  -Verbose
-                } catch { }
-            }
-        }    
-    }
-    END 
-    {
-        $VerbosePreference = $originalVerbosePreference
-    }
-}
 
-
-#------------------------------------------------------------------#
-#- Clear-EdgeCache Function #ALMAZ                                                #
-#------------------------------------------------------------------#
-
-
-Function Clear-EdgeCache {
-    param([string]$user=$env:USERNAME)
-    if((Test-Path "C:\Users$user\AppData\Local\Microsoft\Edge\User Data\Default"))
-    {
-        $EdgeAppData = "C:\Users$user\AppData\Local\Microsoft\Edge\User Data\Default"
-        $possibleCachePaths = @('Cache','Cache\Cache_data','Cookies','History','Top Sites','Visited Links','Web Data','Media History','Cookies-Journal')
-        ForEach($cachePath in $possibleCachePaths)
-        {
-            Remove-CacheFiles "$EdgeAppData$cachePath"
-        }
-        }
-}
 
 $challenge = Read-Host "Are you sure you wish to completely reinstall Microsoft Teams? 
 This will also close Internet Explorer, Chrome, Firefox & Edge (Y/N)"
@@ -206,7 +144,9 @@ elseif ($challenge -eq "Y"){
     try{
         RunDll32.exe InetCpl.cpl, ClearMyTracksByProcess 8
         RunDll32.exe InetCpl.cpl, ClearMyTracksByProcess 2
-        Clear-EdgeCache
+        Get-ChildItem -Path $env:LOCALAPPDATA"\Microsoft\Edge\User Data\Default\Cache"  | Remove-Item -Confirm:$false 
+        Get-ChildItem -Path $env:LOCALAPPDATA"\Google\Chrome\User Data\Default\Cookies" -File  | Remove-Item -Confirm:$false 
+        Get-ChildItem -Path $env:LOCALAPPDATA"\Google\Chrome\User Data\Default\Web Data" -File  | Remove-Item -Confirm:$false 
         Start-Sleep 3
         Write-Host "IE and Edge Cleaned" -ForegroundColor Green
     }
