@@ -219,9 +219,10 @@ elseif ($challenge -eq "Y"){
     # Write-Host "Checking install" -ForegroundColor Magenta
     # $proc = Start-Process -FilePath $ExeDestination -ArgumentList "-p" -PassThru
     # $proc.WaitForExit()
-
+    Write-Host "Starting MS Teams"
     Start-Process -FilePath $env:LOCALAPPDATA\Microsoft\WindowsApps\ms-teams.exe
-    
+    Write-Host "Closing script"
+    Start-Sleep 3
     Stop-Process -Id $PID
 }
 
