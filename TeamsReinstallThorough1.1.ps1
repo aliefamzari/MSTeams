@@ -47,13 +47,13 @@ elseif ($challenge -eq "Y"){
     Write-Host "Stopping Teams Process" -ForegroundColor Yellow
 
     try{
-        Get-Process -ProcessName Teams  | Stop-Process -Force
+        Get-Process -ProcessName *Teams*  | Stop-Process -Force
         Start-Sleep -Seconds 3
         Write-Host "Teams Process Sucessfully Stopped" -ForegroundColor Green
     }
     
     catch{
-        echo $_
+        Write-Output $_
     }
 
     # Starts uninstall
@@ -74,6 +74,15 @@ elseif ($challenge -eq "Y"){
     }
     catch
     {
+        Write-Error -ErrorRecord $_
+    }
+    $NewMSTeams = Get-AppxPackage -Name MSTeams
+    try {
+        if ($NewMSTeams){
+            Remove-AppxPackage $NewMSTeams
+        }
+    }
+    catch {
         Write-Error -ErrorRecord $_
     }
     
@@ -99,7 +108,7 @@ elseif ($challenge -eq "Y"){
     }
     
     catch{
-        echo $_
+        Write-Output $_
     }
     
     Write-Host "Stopping Chrome Process" -ForegroundColor Yellow
@@ -111,7 +120,7 @@ elseif ($challenge -eq "Y"){
     }
     
     catch{
-        echo $_
+        Write-Output $_
     }
 
     Write-Host "Clearing Chrome Cache" -ForegroundColor Yellow
@@ -124,7 +133,7 @@ elseif ($challenge -eq "Y"){
     }
     
     catch{
-        echo $_
+        Write-Output $_
     }
     
     Write-Host "Stopping IE & Edge Process" -ForegroundColor Yellow
@@ -137,7 +146,7 @@ elseif ($challenge -eq "Y"){
     }
     
     catch{
-        echo $_
+        Write-Output $_
     }
 
     Write-Host "Clearing IE & Edge Cache" -ForegroundColor Yellow
@@ -150,7 +159,7 @@ elseif ($challenge -eq "Y"){
     }
     
     catch{
-        echo $_
+        Write-Output $_
     }
 
     Write-Host "Stopping Firefox Process" -ForegroundColor Yellow
@@ -162,7 +171,7 @@ elseif ($challenge -eq "Y"){
     }
     
     catch{
-        echo $_
+        Write-Output $_
     }
 
     Write-Host "Clearing Firefox Cache" -ForegroundColor Yellow
@@ -174,7 +183,7 @@ elseif ($challenge -eq "Y"){
     }
 
     catch{
-        echo $_
+        Write-Output $_
     }
 
     Write-Host "Cleanup Complete..." -ForegroundColor Green
@@ -189,28 +198,29 @@ elseif ($challenge -eq "Y"){
     
     # Make a Teams install that automatically downloads the installer
     $ExeFolder = "$ENV:USERPROFILE\Downloads"
-    $DownloadSource = "https://go.microsoft.com/fwlink/p/?LinkID=869426&clcid=0x409&culture=en-us&country=US&lm=deeplink&lmsrc=groupChatMarketingPageWeb&cmpid=directDownloadWin64"
-    $ExeDestination = "$ExeFolder\Teams_windows_x64.exe"
+    $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409"
+    $ExeDestination = "$ExeFolder\teamsbootstrapper.exe"
 
     If([System.IO.File]::Exists($ExeDestination) -eq $false){
         Write-Host "Downloading Teams, please wait." -ForegroundColor Red
         Invoke-WebRequest $DownloadSource -OutFile $ExeDestination
+        Unblock-File -Path $ExeDestination
     }
     Else{
         Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Red
     }
 
     Write-Host "Installing Teams" -ForegroundColor Magenta
-    $proc = Start-Process -FilePath $ExeDestination -ArgumentList "-s" -PassThru
+    $proc = Start-Process -FilePath $ExeDestination -ArgumentList "-p" -PassThru
     $proc.WaitForExit()
 
     Start-Sleep 5
 
-    Write-Host "Checking install" -ForegroundColor Magenta
-    $proc = Start-Process -FilePath $ExeDestination -ArgumentList "-s" -PassThru
-    $proc.WaitForExit()
+    # Write-Host "Checking install" -ForegroundColor Magenta
+    # $proc = Start-Process -FilePath $ExeDestination -ArgumentList "-p" -PassThru
+    # $proc.WaitForExit()
 
-    Start-Process -FilePath $env:LOCALAPPDATA\Microsoft\Teams\current\Teams.exe
+    Start-Process -FilePath $env:LOCALAPPDATA\Microsoft\WindowsApps\ms-teams.exe
     
     Stop-Process -Id $PID
 }
