@@ -48,10 +48,11 @@
 #>
 
 param (
-    [Validateset("MSIX","BootStrap","Classic")]
+    [ValidateSet("MSIX","BootStrap","Classic")]
     [string]$DeploymentType = "BootStrap"
 )
 $ErrorActionPreference = "SilentlyContinue"
+$ClassicInstall = $DeploymentType -eq "Classic"
 
 
 $challenge = Read-Host "Are you sure you wish to completely reinstall MS Teams?
@@ -110,44 +111,53 @@ elseif ($challenge -eq "Y"){
         }   
         Write-Host "MS Outlook Succesfully Stopped" -ForegroundColor Green
     }
+
+    
+
     #EndRegion Kill Process ============================================================
 
     #Region Backup TeamsMeetingAddinDLL ================================================
-    $sourcePath = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
-    $backupPath = "$env:LOCALAPPDATA\Microsoft"
 
-    if (-not (Test-Path $sourcePath)) {
-        Write-Host "Error!`n$sourcePath does not exist. `nPlease reinstall MS Teams Classic" -ForegroundColor Red
-        Read-Host "Press enter to exit"
-        return
+    if (!$ClassicInstall) {
+        $sourcePath = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
+        $backupPath = "$env:LOCALAPPDATA\Microsoft"
+        $DirExist = Test-Path $sourcePath
+        if (!$DirExist) {
+            Write-Host "Error!`n$sourcePath does not exist. `nPlease reinstall MS Teams Classic
+            `n To install MS Teams Classic, use the script in powershell and execute with parameter -DeploymentType Classic" -ForegroundColor Red
+            Read-Host "Press enter to exit"
+            return
+        }
+    
+        $sourceItems = Get-ChildItem $sourcePath
+        $DirEmpty = $sourceItems.Count -eq 0
+        if ($DirEmpty) {
+            Write-Host "Error!`n$sourcePath is empty. `nPlease reinstall MS Teams Classic.
+            `n To install MS Teams Classic, use the script in powershell and execute with parameter -DeploymentType Classic" -ForegroundColor Red
+            Read-Host "Press enter to exit"
+            return
+        }
+    
+        if (-not (Test-Path $backupPath)) {
+            Write-Host "Error!`nBackup directory $backupPath does not exist."
+            Read-Host "Press enter to exit"
+            return
+        }
+    
+        $backupDestination = Join-Path $backupPath "TeamsMeetingAddinBackup"
+    
+        # Check if the destination folder already exists
+        if (Test-Path $backupDestination) {
+            Write-Host "$backupDestination already exists. Proceed to remove it."  -ForegroundColor Red
+            Remove-item -Path $backupDestination -Recurse
+            # Read-Host "Press enter to exit"
+            # return
+        }
+    
+        Copy-Item -Path $sourcePath -Destination $backupDestination -Recurse
+        Write-Host "Backup of $sourcePath created in $backupDestination" -ForegroundColor Green
     }
-
-    $sourceItems = Get-ChildItem $sourcePath
-
-    if ($sourceItems.Count -eq 0) {
-        Write-Host "Error!`n$sourcePath is empty. `nPlease reinstall MS Teams Classic" -ForegroundColor Red
-        Read-Host "Press enter to exit"
-        return
-    }
-
-    if (-not (Test-Path $backupPath)) {
-        Write-Host "Error!`nBackup directory $backupPath does not exist."
-        Read-Host "Press enter to exit"
-        return
-    }
-
-    $backupDestination = Join-Path $backupPath "TeamsMeetingAddinBackup"
-
-    # Check if the destination folder already exists
-    if (Test-Path $backupDestination) {
-        Write-Host "$backupDestination already exists. Proceed to remove it."  -ForegroundColor Red
-        Remove-item -Path $backupDestination -Recurse
-        # Read-Host "Press enter to exit"
-        # return
-    }
-
-    Copy-Item -Path $sourcePath -Destination $backupDestination -Recurse
-    Write-Host "Backup of $sourcePath created in $backupDestination" -ForegroundColor Green
+   
     #EndRegion Backup TeamsMeetingAddinDLL =============================================
     
     #Region MS Teams Uninstall =========================================================
@@ -278,8 +288,8 @@ elseif ($challenge -eq "Y"){
             $proc.WaitForExit()
         }
         Classic {
-            $DownloadSource = "https://go.microsoft.com/fwlink/p/?LinkID=869426&clcid=0x409&culture=en-us&country=US&lm=deeplink&lmsrc=groupChatMarketingPageWeb&cmpid=directDownloadWin64"
-            $InstallerLocation = "$InstallerDir\Teams_windows_x64.exe"
+            $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
+            $InstallerLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
             If([System.IO.File]::Exists($InstallerLocation) -eq $false){
                 Write-Host "Downloading Teams, please wait." -ForegroundColor Red
                 curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
@@ -309,112 +319,117 @@ elseif ($challenge -eq "Y"){
     #EndRegion DeploymentType ==========================================================
 
     #Region Restore TeamsAddin backup ==================================================
-    Write-Host "Restoring TeamsAddinDLL backup" -ForegroundColor Green
-    if (Test-Path $sourcePath) {
-        Remove-Item $sourcePath -Recurse -Force
+    if (!$ClassicInstall){
+        Write-Host "Restoring TeamsAddinDLL backup" -ForegroundColor Green
+        if (Test-Path $sourcePath) {
+            Remove-Item $sourcePath -Recurse -Force
+        }
+        Rename-Item -path $backupDestination -NewName $sourcePath
     }
-    Rename-Item -path $backupDestination -NewName $sourcePath
+
     #EndRegion Restore TeamsAddin backup ===============================================
     
     #Region Registring Teams Addin ====================================================
-    $TeamsMeetingAddinPath= "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
+    if (!$ClassicInstall) {
+        $TeamsMeetingAddinPath= "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
 
-    if (-not (Test-Path $TeamsMeetingAddinPath)) {
-        Write-Host "Warning!! $TeamsMeetingAddinPath does not exist" -ForegroundColor Red
-        Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
-        Read-Host "Press Enter to exit"
-        Exit
-    } 
-    else {
-        $items = Get-ChildItem $TeamsMeetingAddinPath
-        if ($items.Count -eq 0) {
-            Write-Host "Warning!! $TeamsMeetingAddinPath is empty" -ForegroundColor Red
+        if (-not (Test-Path $TeamsMeetingAddinPath)) {
+            Write-Host "Warning!! $TeamsMeetingAddinPath does not exist" -ForegroundColor Red
             Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
             Read-Host "Press Enter to exit"
             Exit
+        } 
+        else {
+            $items = Get-ChildItem $TeamsMeetingAddinPath
+            if ($items.Count -eq 0) {
+                Write-Host "Warning!! $TeamsMeetingAddinPath is empty" -ForegroundColor Red
+                Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
+                Read-Host "Press Enter to exit"
+                Exit
+            }
         }
-    }
-    # Register TeamsAddin DLL   
-    $LattestDLLversion = (Get-ChildItem -Path $TeamsMeetingAddinPath-Directory |Sort-Object CreationTime -Descending| Select-Object -First 1)
-    $LattestDLLversion = ($LattestDLLversion).FullName
-    $teamsdotdead = "$LattestDLLversion\.dead"
-    $teamsdll = "$LattestDLLversion\x64\Microsoft.Teams.AddinLoader.dll"
-            
-    Write-Host "Removing .dead file if exist"
-    if (Test-Path -Path $teamsdotdead) {
-        Remove-Item -Path $teamsdotdead
-        Write-host ".dead file found and removed"
-    }
-    else {
-        Write-host "No .dead file exist"
-    }
-    write-host "Deregistring Microsoft.Teams.AddinLoader.dll" -ForegroundColor Yellow
-    start-sleep 5
-    regsvr32.exe /U "$teamsdll" /s
-    write-host "Registring Microsoft.Teams.AddinLoader.dll" -ForegroundColor Green
-    regsvr32.exe /n /i:user "$teamsdll" /s
-    Write-Host "Done"
-    
-    # Check if Microsoft Teams add-ins for Outlook are enabled
-    $TeamsMeetingAddinRegPath = "HKCU:\SOFTWARE\Microsoft\Office\Outlook\Addins\TeamsAddin.FastConnect" 
-    $FastConnectReg = Get-Item -Path $TeamsMeetingAddinRegPath -ErrorAction SilentlyContinue
-    
-    if ($null -eq $FastConnectReg) {
-        Write-Host "Microsoft Teams add-ins for Outlook is not enable"
-        Write-Host "Enabling Teams Addin in Outlook"
-        New-Item -Path $TeamsMeetingAddinRegPath
-        New-ItemProperty -Path $TeamsMeetingAddinRegPath -Name "Description" -Value "Microsoft Teams Meeting Add-in for Microsoft Office"
-        New-ItemProperty -Path $TeamsMeetingAddinRegPath -Name "FriendlyName" -Value "Microsoft Teams Meeting Add-in for Microsoft Office"
-        New-ItemProperty -Path $TeamsMeetingAddinRegPath -Name "LoadBehavior" -PropertyType DWord -Value 3
-        Write-Host "Teams Addins Enabled" -ForegroundColor Green
-    } 
-    else {
-        $CurLoadBehavior = $FastConnectReg.GetValue("LoadBehavior")
-        if ($CurLoadBehavior -eq 3) {
-            Write-Host "Microsoft Teams add-ins LoadBehavior is already set to 3."
-        } else {
-            Write-Host "Microsoft Teams add-ins LoadBehavior is $CurLoadBehavior"
-            Set-ItemProperty -path $TeamsMeetingAddinRegPath -Name LoadBehavior -Value 3
-            $newloadbehavior = $FastConnectReg.GetValue("LoadBehavior")
-            Write-Host "Microsoft Teams add-ins LoadBehavior has been set to $newloadbehavior."
+        # Register TeamsAddin DLL   
+        $LattestDLLversion = (Get-ChildItem -Path $TeamsMeetingAddinPath-Directory |Sort-Object CreationTime -Descending| Select-Object -First 1)
+        $LattestDLLversion = ($LattestDLLversion).FullName
+        $teamsdotdead = "$LattestDLLversion\.dead"
+        $teamsdll = "$LattestDLLversion\x64\Microsoft.Teams.AddinLoader.dll"
+                
+        Write-Host "Removing .dead file if exist"
+        if (Test-Path -Path $teamsdotdead) {
+            Remove-Item -Path $teamsdotdead
+            Write-host ".dead file found and removed"
         }
+        else {
+            Write-host "No .dead file exist"
+        }
+        write-host "Deregistring Microsoft.Teams.AddinLoader.dll" -ForegroundColor Yellow
+        start-sleep 5
+        regsvr32.exe /U "$teamsdll" /s
+        write-host "Registring Microsoft.Teams.AddinLoader.dll" -ForegroundColor Green
+        regsvr32.exe /n /i:user "$teamsdll" /s
+        Write-Host "Done"
+        
+        # Check if Microsoft Teams add-ins for Outlook are enabled
+        $TeamsMeetingAddinRegPath = "HKCU:\SOFTWARE\Microsoft\Office\Outlook\Addins\TeamsAddin.FastConnect" 
+        $FastConnectReg = Get-Item -Path $TeamsMeetingAddinRegPath -ErrorAction SilentlyContinue
+        
+        if ($null -eq $FastConnectReg) {
+            Write-Host "Microsoft Teams add-ins for Outlook is not enable"
+            Write-Host "Enabling Teams Addin in Outlook"
+            New-Item -Path $TeamsMeetingAddinRegPath
+            New-ItemProperty -Path $TeamsMeetingAddinRegPath -Name "Description" -Value "Microsoft Teams Meeting Add-in for Microsoft Office"
+            New-ItemProperty -Path $TeamsMeetingAddinRegPath -Name "FriendlyName" -Value "Microsoft Teams Meeting Add-in for Microsoft Office"
+            New-ItemProperty -Path $TeamsMeetingAddinRegPath -Name "LoadBehavior" -PropertyType DWord -Value 3
+            Write-Host "Teams Addins Enabled" -ForegroundColor Green
+        } 
+        else {
+            $CurLoadBehavior = $FastConnectReg.GetValue("LoadBehavior")
+            if ($CurLoadBehavior -eq 3) {
+                Write-Host "Microsoft Teams add-ins LoadBehavior is already set to 3."
+            } else {
+                Write-Host "Microsoft Teams add-ins LoadBehavior is $CurLoadBehavior"
+                Set-ItemProperty -path $TeamsMeetingAddinRegPath -Name LoadBehavior -Value 3
+                $newloadbehavior = $FastConnectReg.GetValue("LoadBehavior")
+                Write-Host "Microsoft Teams add-ins LoadBehavior has been set to $newloadbehavior."
+            }
+        }
+        
+        # KB0016283 - Add registry entry (if not exist) - KB from Dina Rantzau https://onewebshop.service-now.com/kb_view.do?sysparm_article=KB0016283
+        Write-Host "Applying KB0016283"
+        # RTAC1
+        $RTAC1P = 'HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\'
+        $RTAC1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.Connect
+        
+        if ($null -eq $RTAC1) {
+            Write-Host "Create RTAC1"
+            New-ItemProperty -Path $RTAC1P -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType "String"
+        }
+        else {
+            Write-host "RTAC1 already exist"
+        }
+        #RTAC2
+        $RTAC2P = 'HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\'
+        $RTAC2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.Connect
+        
+        if ($null -eq $RTAC2) {
+            Write-Host "Create RTAC2"
+            New-ItemProperty -Path $RTAC2P -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType DWord
+        }
+        else {
+            Write-host "RTAC2 already exist"
+        }
+        Write-Host "Done Registring MS TeamsAddin!"
     }
-    
-    # KB0016283 - Add registry entry (if not exist) - KB from Dina Rantzau https://onewebshop.service-now.com/kb_view.do?sysparm_article=KB0016283
-    Write-Host "Applying KB0016283"
-    # RTAC1
-    $RTAC1P = 'HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\'
-    $RTAC1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.Connect
-    
-    if ($null -eq $RTAC1) {
-        Write-Host "Create RTAC1"
-        New-ItemProperty -Path $RTAC1P -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType "String"
-    }
-    else {
-        Write-host "RTAC1 already exist"
-    }
-    #RTAC2
-    $RTAC2P = 'HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\'
-    $RTAC2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.Connect
-    
-    if ($null -eq $RTAC2) {
-        Write-Host "Create RTAC2"
-        New-ItemProperty -Path $RTAC2P -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType DWord
-    }
-    else {
-        Write-host "RTAC2 already exist"
-    }
-    Write-Host "Done Registring MS TeamsAddin!"
     #EndRegion Registring Teams Addin =================================================
 
     Write-Host "Starting MS Teams.." -ForegroundColor Green
 
-    Switch -regex ($DeploymentTYpe) {
+    Switch -regex ($DeploymentType) {
         "BootStrap|MSIX" {
             Start-Process -FilePath $env:LOCALAPPDATA\Microsoft\WindowsApps\ms-teams.exe
         }
         "Classic" {
-            Start-Process -FilePath $env:LOCALAPPDATA\Microsoft\Teams\current\Teams.exe
+            Start-Process -FilePath $env:LOCALAPPDATA\Microsoft\Teams\current\Teams.exe -PassThru
         }
     }
     Write-Host "Done!" -ForegroundColor Green
