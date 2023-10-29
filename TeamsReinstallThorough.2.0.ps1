@@ -7,6 +7,7 @@
         Remove MS Teams residual when uninstall MS Teams.
         Download MS Teams using bootstrap.exe, MSIX package, or the classic MS Teams.
         Delete browser cache.
+        Register Teams addin for bootstrap and msix install.
     
     .PARAMETER DeploymentType
         Choose between MSIX, bootstrap or Classic teams to be install.
@@ -82,7 +83,7 @@ if ($challenge -eq "N"){
 }
 
 elseif ($challenge -eq "Y"){
-    
+    #Region Code
 
     #Region Kill Process ===============================================================
     #Stops Microsoft Teams
@@ -436,6 +437,7 @@ elseif ($challenge -eq "Y"){
     Start-Sleep 3
     Read-Host "Press Enter to exit.."
     Stop-Process -Id $PID
+    #endregion code
 }
 
 else{
