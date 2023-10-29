@@ -194,8 +194,6 @@ if ($choice -in "yes", "y", "Y") {
         }
     }
     function TeamsAddin {
-        # $TeamsMeetingAddinDir= "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
-        
         if (-not (Test-Path $TeamsMeetingAddinDir)) {
             Write-Host "Warning!! $TeamsMeetingAddinDir does not exist" -ForegroundColor Red
             Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
@@ -284,8 +282,6 @@ if ($choice -in "yes", "y", "Y") {
         Write-Host "Done Registring MS TeamsAddin!" -ForegroundColor Green
     }
     function BackupTeamsAddin {
-            # $TeamsMeetingAddinDir = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
-            # $backupPath = "$env:LOCALAPPDATA\Microsoft"
             $DirExist = Test-Path $TeamsMeetingAddinDir
             if (!$DirExist) {
                 Write-Host "Error!`n$TeamsMeetingAddinDir does not exist. `nPlease reinstall MS Teams Classic
