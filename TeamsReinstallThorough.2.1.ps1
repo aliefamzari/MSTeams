@@ -367,41 +367,35 @@ if ($choice -in "yes", "y", "Y") {
         Write-Host "Cleanup Complete..." -ForegroundColor Green
     }
     function TeamsUninstall {
-        # switch -Regex ($DeploymentType) {
-            # "BootStrap|MSIX" {
-                $NewMSTeams = Get-AppxPackage -Name MSTeams
-                try {
-                    if ($NewMSTeams){
-                        Write-Host "Uninstalling New Teams process" -ForegroundColor Yellow
-                        Remove-AppxPackage $NewMSTeams
-                    }
-                }
-                catch {
-                    Write-Error -ErrorRecord $_
-                }
-            # }
-            # 'Classic' {
-                $TeamsPath = [System.IO.Path]::Combine($env:LOCALAPPDATA, 'Microsoft', 'Teams')
-                $TeamsUpdateExePath = [System.IO.Path]::Combine($env:LOCALAPPDATA, 'Microsoft', 'Teams', 'Update.exe')
-                try
-                {
-                    if (Test-Path -Path $TeamsUpdateExePath) {
-                        Write-Host "Uninstalling Classic Teams process" -ForegroundColor Yellow
-                        # Uninstall app
-                        $proc = Start-Process -FilePath $TeamsUpdateExePath -ArgumentList "-uninstall -s" -PassThru
-                        $proc.WaitForExit()
-                    }
-                    if (Test-Path -Path $TeamsPath) {
-                        Write-Host "Deleting Teams directory" -ForegroundColor Yellow
-                        Remove-Item -Path $TeamsPath -Recurse
-                    }
-                }
-                catch
-                {
-                    Write-Error -ErrorRecord $_
-                }
-            # }
-        # }
+        $NewMSTeams = Get-AppxPackage -Name MSTeams
+        try {
+        if ($NewMSTeams){
+        Write-Host "Uninstalling New Teams process" -ForegroundColor Yellow
+        Remove-AppxPackage $NewMSTeams
+        }
+        }
+        catch {
+        Write-Error -ErrorRecord $_
+        }
+        $TeamsPath = [System.IO.Path]::Combine($env:LOCALAPPDATA, 'Microsoft', 'Teams')
+        $TeamsUpdateExePath = [System.IO.Path]::Combine($env:LOCALAPPDATA, 'Microsoft', 'Teams', 'Update.exe')
+        try
+        {
+        if (Test-Path -Path $TeamsUpdateExePath) {
+        Write-Host "Uninstalling Classic Teams process" -ForegroundColor Yellow
+        # Uninstall app
+        $proc = Start-Process -FilePath $TeamsUpdateExePath -ArgumentList "-uninstall -s" -PassThru
+        $proc.WaitForExit()
+        }
+        if (Test-Path -Path $TeamsPath) {
+        Write-Host "Deleting Teams directory" -ForegroundColor Yellow
+        Remove-Item -Path $TeamsPath -Recurse
+        }
+        }
+        catch
+        {
+        Write-Error -ErrorRecord $_
+        }
     }
     function RestoreTeamsAddinBackup {
         Write-Host "Restoring TeamsAddinDLL backup" -ForegroundColor Green
