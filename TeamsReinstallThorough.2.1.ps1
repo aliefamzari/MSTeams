@@ -102,18 +102,15 @@ if ($choice -in "yes", "y", "Y") {
         }
     }
     function MSIXInstall {
-        # param (
-        #     OptionalParameters
-        # )
-        $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409&culture=en-us&country=us" #MSTeams-x86.msix,32bit,no elevation
-        $InstallerLocation = "$InstallerDir\MSTeams-x86.msix"
-        If([System.IO.File]::Exists($InstallerLocation) -eq $false){
-            Write-Host "Downloading Teams, please wait." -ForegroundColor Red
-            curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
-        }
-        Else{
-            Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
-        }
+        # $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409&culture=en-us&country=us" #MSTeams-x86.msix,32bit,no elevation
+        # $InstallerLocation = "$InstallerDir\MSTeams-x86.msix"
+        # If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+        #     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+        #     curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+        # }
+        # Else{
+        #     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+        # }
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
             Add-AppxPackage -Path $InstallerLocation
@@ -125,16 +122,15 @@ if ($choice -in "yes", "y", "Y") {
         }
     }
     function BootStrapInstall {
-        $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409" #teamsbootstrapper.exe,64bit,require elevation
-        $InstallerLocation = "$InstallerDir\teamsbootstrapper.exe"
-        If([System.IO.File]::Exists($InstallerLocation) -eq $false){
-            Write-Host "Downloading Teams, please wait." -ForegroundColor Red
-            curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
-        }
-        Else{
-            Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
-        }
-
+        # $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409" #teamsbootstrapper.exe,64bit,require elevation
+        # $InstallerLocation = "$InstallerDir\teamsbootstrapper.exe"
+        # If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+        #     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+        #     curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+        # }
+        # Else{
+        #     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+        # }
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
             Unblock-File -Path $InstallerLocation
@@ -151,21 +147,21 @@ if ($choice -in "yes", "y", "Y") {
         $proc.WaitForExit()
     }
     function ClassicInstall {
-        $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
-        $InstallerLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
-        If([System.IO.File]::Exists($InstallerLocation) -eq $false){
-            Write-Host "Downloading Teams, please wait." -ForegroundColor Red
-            curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
-            # $ProgressPreference = 'SilentlyContinue'
-            # Invoke-WebRequest $DownloadSource -OutFile $InstallerLocation # 6 minutes 11 seconds download (with progress bar, 11 second no progress bar)
-            # $ProgressPreference = 'Continue'
-            # $wc = New-Object Net.Webclient
-            # $wc.DownloadFile($DownloadSource,$InstallerLocation) # 11 second download (no progress bar)
-            # Unblock-File -Path $InstallerLocation
-        }
-        Else{
-            Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
-        }
+        # $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
+        # $InstallerLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
+        # If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+        #     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+        #     curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+        #     # $ProgressPreference = 'SilentlyContinue'
+        #     # Invoke-WebRequest $DownloadSource -OutFile $InstallerLocation # 6 minutes 11 seconds download (with progress bar, 11 second no progress bar)
+        #     # $ProgressPreference = 'Continue'
+        #     # $wc = New-Object Net.Webclient
+        #     # $wc.DownloadFile($DownloadSource,$InstallerLocation) # 11 second download (no progress bar)
+        #     # Unblock-File -Path $InstallerLocation
+        # }
+        # Else{
+        #     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+        # }
 
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
@@ -191,6 +187,7 @@ if ($choice -in "yes", "y", "Y") {
         }
         else {
             Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
+            Write-Host "Please re-install again using different deployment method" -ForegroundColor Red
         }
     }
     function TeamsAddin {
@@ -286,7 +283,7 @@ if ($choice -in "yes", "y", "Y") {
             if (!$DirExist) {
                 Write-Host "Error!`n$TeamsMeetingAddinDir does not exist. `nPlease reinstall MS Teams Classic
                 `n To install MS Teams Classic, use the script in powershell and execute with parameter -DeploymentType Classic" -ForegroundColor Red
-                #Read-Host "Press enter to exit"
+                # Read-Host "Press enter to exit"
                 Break
             }
         
@@ -295,13 +292,13 @@ if ($choice -in "yes", "y", "Y") {
             if ($DirEmpty) {
                 Write-Host "Error!`n$TeamsMeetingAddinDir is empty. `nPlease reinstall MS Teams Classic.
                 `n To install MS Teams Classic, use the script in powershell and execute with parameter -DeploymentType Classic" -ForegroundColor Red
-                #Read-Host "Press enter to exit"
+                # Read-Host "Press enter to exit"
                 Break
             }
         
             if (-not (Test-Path $backupPath)) {
                 Write-Host "Error!`nBackup directory $backupPath does not exist."
-                #Read-Host "Press enter to exit"
+                # Read-Host "Press enter to exit"
                 Break
             }
         
@@ -401,12 +398,56 @@ if ($choice -in "yes", "y", "Y") {
         }
         Rename-Item -path $backupDestination -NewName $TeamsMeetingAddinDir
     }
+    function DownloadTeams {
+        switch ($DeploymentType) {
+            MSIX {
+                $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409&culture=en-us&country=us" #MSTeams-x86.msix,32bit,no elevation
+                $Script:InstallerLocation = "$InstallerDir\MSTeams-x86.msix"
+                If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+                    Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+                    curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+                }
+                Else{
+                    Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+                }
+            }
+            BootStrap {
+                $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409" #teamsbootstrapper.exe,64bit,require elevation
+                $Script:InstallerLocation = "$InstallerDir\teamsbootstrapper.exe"
+                If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+                    Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+                    curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+                }
+                Else{
+                    Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+                }
+            }
+            Classic {
+                $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
+                $Script:InstallerLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
+                If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+                    Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+                    curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+                    # $ProgressPreference = 'SilentlyContinue'
+                    # Invoke-WebRequest $DownloadSource -OutFile $InstallerLocation # 6 minutes 11 seconds download (with progress bar, 11 second no progress bar)
+                    # $ProgressPreference = 'Continue'
+                    # $wc = New-Object Net.Webclient
+                    # $wc.DownloadFile($DownloadSource,$InstallerLocation) # 11 second download (no progress bar)
+                    # Unblock-File -Path $InstallerLocation
+                }
+                Else{
+                    Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+                }
+            }
+        }
+    }
     #EndRegion Function
 
     Switch ($DeploymentType) {
         'BootStrap' {
             KillApp
             BackupTeamsAddin
+            DownloadTeams
             TeamsUninstall
             ClearCache
             BootStrapInstall
@@ -417,22 +458,25 @@ if ($choice -in "yes", "y", "Y") {
         'MSIX' {
             KillApp
             BackupTeamsAddin
+            DownloadTeams
             TeamsUninstall
             ClearCache
             MSIXInstall
             RestoreTeamsAddinBackup
             TeamsAddin
             StartApp
-            # Start-Sleep 40
         }
         'Classic' {
             KillApp
+            DownloadTeams
             TeamsUninstall
             ClearCache
             ClassicInstall
             StartApp
         }
     }
+    Read-Host "Press Enter to exit"
+    break
 }
 else 
 {
