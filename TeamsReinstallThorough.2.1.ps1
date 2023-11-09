@@ -11,7 +11,7 @@
     
     .PARAMETER DeploymentType
         Choose between MSIX, bootstrap or Classic teams to be install.
-        Default installation without paramater is bootstrap.
+        Default installation without paramater is MSIX.
         MSIX:   
             The script use the public URL which only available in x86.
             If Microsoft Store is disabled, can only be deploy using Add-AppxPackage CMDlet.
@@ -185,7 +185,6 @@ if ($choice -in "yes", "y", "Y") {
         if ($ExeExist) {
             Write-Host "Starting MS Teams" -ForegroundColor Green
             Start-Process $AppPath
-            Clear-Host
         }
         else {
             Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
@@ -425,10 +424,13 @@ if ($choice -in "yes", "y", "Y") {
                 $Script:MSIXLocation = "$InstallerDir\MSTeams-x86.msix"
                 If([System.IO.File]::Exists($MSIXLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $IMSIXLocation $DownloadSource # 10 second download (with progress bar)
+                    curl.exe -fSLo $MSIXLocation $DownloadSource # 10 second download (with progress bar)
                 }
                 Else{
-                    Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+                    Write-Host "Installer file already present in Downloads folder. Removing old installer." -ForegroundColor Yellow
+                    Remove-item -path $MSIXLocation
+                    Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+                    curl.exe -fSLo $MSIXLocation $DownloadSource
                 }
             }
             BootStrap {
