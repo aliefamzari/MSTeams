@@ -441,7 +441,10 @@ if ($choice -in "yes", "y", "Y") {
                     curl.exe -fSLo $BootStrapLocation $DownloadSource # 10 second download (with progress bar)
                 }
                 Else{
-                    Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+                    Write-Host "Installer file already present in Downloads folder. Removing old installer." -ForegroundColor Yellow
+                    Remove-item -path $BootStrapLocation
+                    Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+                    curl.exe -fSLo $BootStrapLocation $DownloadSource
                 }
             }
             Classic {
@@ -458,7 +461,10 @@ if ($choice -in "yes", "y", "Y") {
                     # Unblock-File -Path $InstallerLocation
                 }
                 Else{
-                    Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
+                    Write-Host "Installer file already present in Downloads folder. Removing old installer." -ForegroundColor Yellow
+                    Remove-item -path $ClassicLocation
+                    Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
+                    curl.exe -fSLo $ClassicLocation $DownloadSource
                 }
             }
         }
