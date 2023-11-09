@@ -49,16 +49,17 @@
 #>
 param (
     [ValidateSet("MSIX","BootStrap","Classic")]
-    [string]$DeploymentType = "BootStrap"
+    [string]$DeploymentType = "MSIX"
 )
 $ErrorActionPreference = "SilentlyContinue"
 
 Write-Host "Are you sure you wish to completely reinstall MS Teams?"
 Write-Host "The default deployment will removed the Classic Teams in favor of New Teams."
-Write-Host "The default deployment type is BootStrap."
+Write-Host "The default deployment type is MSIX."
 Write-Host "To install MS Teams Classic, use -DeploymentType Classic" 
-Write-Host "To install using MSIX package, use -DeploymentType MSIX"
+Write-Host "To install using BootStrap package, use -DeploymentType BootStrap"
 Write-Host "This will delete cache of Internet Explorer, MS Edge, Chrome & Firefox"
+Write-Host "Please ensure you save and close your Outlook and browsers." -ForegroundColor Red
 # Display the current deployment type in green with a newline
 Write-Host -NoNewline "The current deployment is "
 Write-Host -NoNewline -ForegroundColor Green "$DeploymentType"
@@ -113,7 +114,7 @@ if ($choice -in "yes", "y", "Y") {
         # }
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
-            Add-AppxPackage -Path $InstallerLocation
+            Add-AppxPackage -Path $MSIXLocation
         }
         catch {
             Write-Host "AppX error!" -ForegroundColor Red
@@ -133,8 +134,8 @@ if ($choice -in "yes", "y", "Y") {
         # }
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
-            Unblock-File -Path $InstallerLocation
-            $proc = Start-Process -FilePath $InstallerLocation -ArgumentList "-p" -PassThru
+            Unblock-File -Path $BootStrapLocation
+            $proc = Start-Process -FilePath $BootStrapLocation -ArgumentList "-p" -PassThru
         }
         catch {
             Write-Host "Elevation or EPM error. Script stop" -ForegroundColor Red
@@ -165,7 +166,7 @@ if ($choice -in "yes", "y", "Y") {
 
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
-            $proc = Start-Process -FilePath $InstallerLocation -ArgumentList "-s" -PassThru
+            $proc = Start-Process -FilePath $ClassicLocation -ArgumentList "-s" -PassThru
         }
         catch {
             Write-Host "Elevation or EPM error. Script stop" -ForegroundColor Red
@@ -184,6 +185,7 @@ if ($choice -in "yes", "y", "Y") {
         if ($ExeExist) {
             Write-Host "Starting MS Teams" -ForegroundColor Green
             Start-Process $AppPath
+            Clear-Host
         }
         else {
             Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
@@ -254,27 +256,45 @@ if ($choice -in "yes", "y", "Y") {
         
         # KB0016283 - Add registry entry (if not exist) - KB from Dina Rantzau https://onewebshop.service-now.com/kb_view.do?sysparm_article=KB0016283
         Write-Host "Applying KB0016283" -ForegroundColor Yellow
-        # RTAC1
-        $RTAC1P = 'HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\'
-        $RTAC1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.Connect
-        
-        if ($null -eq $RTAC1) {
-            Write-Host "Create RTAC1" -ForegroundColor Green
-            New-ItemProperty -Path $RTAC1P -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType "String"
+        # ResiliencyTeamsAddinConnect1
+        $ResiliencyTeamsAddinPath1 = 'HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\'
+        $ResiliencyTeamsAddinConnect1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.Connect
+        $ResiliencyTeamsAddinFastConnect1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.FastConnect
+
+        if ($null -eq $ResiliencyTeamsAddinConnect1) {
+            Write-Host "Create ResiliencyTeamsAddinConnect1"
+            New-ItemProperty -Path $ResiliencyTeamsAddinPath1 -Name "TeamsAddin.Connect" -Value "1" -PropertyType "String"
         }
         else {
-            Write-host "RTAC1 already exist" -ForegroundColor Yellow
+            Write-host "ResiliencyTeamsAddinConnect1 already exist"
         }
-        #RTAC2
-        $RTAC2P = 'HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\'
-        $RTAC2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.Connect
-        
-        if ($null -eq $RTAC2) {
-            Write-Host "Create RTAC2" -ForegroundColor Green
-            New-ItemProperty -Path $RTAC2P -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType DWord
+        if ($null -eq $ResiliencyTeamsAddinFastConnect1) {
+            Write-Host "Create ResiliencyTeamsAddinFastConnect1"
+            New-ItemProperty -Path $ResiliencyTeamsAddinPath1 -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType "String"
+
         }
         else {
-            Write-host "RTAC2 already exist" -ForegroundColor Yellow
+            Write-host "ResiliencyTeamsAddinFastConnect1 already exist"
+        }
+
+        #ResiliencyTeamsAddinConnect2
+        $ResiliencyTeamsAddinPath2 = 'HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\'
+        $ResiliencyTeamsAddinConnect2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.Connect
+        $ResiliencyTeamsAddinFastConnect2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.FastConnect
+
+        if ($null -eq $ResiliencyTeamsAddinConnect2) {
+            Write-Host "Create ResiliencyTeamsAddinConnect2"
+            New-ItemProperty -Path $ResiliencyTeamsAddinPath2 -Name "TeamsAddin.Connect" -Value "1" -PropertyType DWord
+        }
+        else {
+            Write-host "ResiliencyTeamsAddinConnect2 already exist"
+        }
+        if ($null -eq $ResiliencyTeamsAddinFastConnect2) {
+            Write-Host "Create ResiliencyTeamsAddinFastConnect2"
+            New-ItemProperty -Path $ResiliencyTeamsAddinPath2 -Name "TeamsAddin.FastConnect" -Value "1" -PropertyType DWord
+        }
+        else {
+            Write-host "ResiliencyTeamsAddinFastConnect2 already exist"
         }
         Write-Host "Done Registring MS TeamsAddin!" -ForegroundColor Green
     }
@@ -402,10 +422,10 @@ if ($choice -in "yes", "y", "Y") {
         switch ($DeploymentType) {
             MSIX {
                 $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409&culture=en-us&country=us" #MSTeams-x86.msix,32bit,no elevation
-                $Script:InstallerLocation = "$InstallerDir\MSTeams-x86.msix"
-                If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+                $Script:MSIXLocation = "$InstallerDir\MSTeams-x86.msix"
+                If([System.IO.File]::Exists($MSIXLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+                    curl.exe -fSLo $IMSIXLocation $DownloadSource # 10 second download (with progress bar)
                 }
                 Else{
                     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
@@ -413,10 +433,10 @@ if ($choice -in "yes", "y", "Y") {
             }
             BootStrap {
                 $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409" #teamsbootstrapper.exe,64bit,require elevation
-                $Script:InstallerLocation = "$InstallerDir\teamsbootstrapper.exe"
-                If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+                $Script:BootStrapLocation = "$InstallerDir\teamsbootstrapper.exe"
+                If([System.IO.File]::Exists($BootStrapLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+                    curl.exe -fSLo $BootStrapLocation $DownloadSource # 10 second download (with progress bar)
                 }
                 Else{
                     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
@@ -424,10 +444,10 @@ if ($choice -in "yes", "y", "Y") {
             }
             Classic {
                 $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
-                $Script:InstallerLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
-                If([System.IO.File]::Exists($InstallerLocation) -eq $false){
+                $Script:ClassicLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
+                If([System.IO.File]::Exists($ClassicLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
+                    curl.exe -fSLo $ClassicLocation $DownloadSource # 10 second download (with progress bar)
                     # $ProgressPreference = 'SilentlyContinue'
                     # Invoke-WebRequest $DownloadSource -OutFile $InstallerLocation # 6 minutes 11 seconds download (with progress bar, 11 second no progress bar)
                     # $ProgressPreference = 'Continue'
