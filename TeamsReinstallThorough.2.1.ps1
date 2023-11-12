@@ -420,7 +420,7 @@ if ($choice -in "yes", "y", "Y") {
     function DownloadTeams {
         switch ($DeploymentType) {
             MSIX {
-                $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409&culture=en-us&country=us" #MSTeams-x86.msix,32bit,no elevation
+                $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409" #MSTeams-x86.msix,32bit,no elevation
                 $Script:MSIXLocation = "$InstallerDir\MSTeams-x86.msix"
                 If([System.IO.File]::Exists($MSIXLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
