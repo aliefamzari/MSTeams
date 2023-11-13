@@ -103,15 +103,6 @@ if ($choice -in "yes", "y", "Y") {
         }
     }
     function MSIXInstall {
-        # $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409&culture=en-us&country=us" #MSTeams-x86.msix,32bit,no elevation
-        # $InstallerLocation = "$InstallerDir\MSTeams-x86.msix"
-        # If([System.IO.File]::Exists($InstallerLocation) -eq $false){
-        #     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-        #     curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
-        # }
-        # Else{
-        #     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
-        # }
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
             Add-AppxPackage -Path $MSIXLocation
@@ -123,15 +114,6 @@ if ($choice -in "yes", "y", "Y") {
         }
     }
     function BootStrapInstall {
-        # $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409" #teamsbootstrapper.exe,64bit,require elevation
-        # $InstallerLocation = "$InstallerDir\teamsbootstrapper.exe"
-        # If([System.IO.File]::Exists($InstallerLocation) -eq $false){
-        #     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-        #     curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
-        # }
-        # Else{
-        #     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
-        # }
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
             Unblock-File -Path $BootStrapLocation
@@ -148,22 +130,6 @@ if ($choice -in "yes", "y", "Y") {
         $proc.WaitForExit()
     }
     function ClassicInstall {
-        # $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
-        # $InstallerLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
-        # If([System.IO.File]::Exists($InstallerLocation) -eq $false){
-        #     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-        #     curl.exe -fSLo $InstallerLocation $DownloadSource # 10 second download (with progress bar)
-        #     # $ProgressPreference = 'SilentlyContinue'
-        #     # Invoke-WebRequest $DownloadSource -OutFile $InstallerLocation # 6 minutes 11 seconds download (with progress bar, 11 second no progress bar)
-        #     # $ProgressPreference = 'Continue'
-        #     # $wc = New-Object Net.Webclient
-        #     # $wc.DownloadFile($DownloadSource,$InstallerLocation) # 11 second download (no progress bar)
-        #     # Unblock-File -Path $InstallerLocation
-        # }
-        # Else{
-        #     Write-Host "Installer file already present in Downloads folder. Skipping download." -ForegroundColor Yellow
-        # }
-
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
             $proc = Start-Process -FilePath $ClassicLocation -ArgumentList "-s" -PassThru
@@ -421,7 +387,9 @@ if ($choice -in "yes", "y", "Y") {
         switch ($DeploymentType) {
             MSIX {
                 $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2196060&clcid=0x409" #MSTeams-x86.msix,32bit,no elevation
-                $Script:MSIXLocation = "$InstallerDir\MSTeams-x86.msix"
+                $ConverToStaticUrl = curl.exe -fks -X GET -w "%{redirect_url}" $DownloadSource -o NUL
+                $StaticUrlFilename = $ConverToStaticUrl.Split('/')[-1]
+                $Script:MSIXLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($MSIXLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
                     curl.exe -fSLo $MSIXLocation $DownloadSource # 10 second download (with progress bar)
@@ -435,7 +403,9 @@ if ($choice -in "yes", "y", "Y") {
             }
             BootStrap {
                 $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2243204&clcid=0x409" #teamsbootstrapper.exe,64bit,require elevation
-                $Script:BootStrapLocation = "$InstallerDir\teamsbootstrapper.exe"
+                $ConverToStaticUrl = curl.exe -fks -X GET -w "%{redirect_url}" $DownloadSource -o NUL
+                $StaticUrlFilename = $ConverToStaticUrl.Split('/')[-1]
+                $Script:BootStrapLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($BootStrapLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
                     curl.exe -fSLo $BootStrapLocation $DownloadSource # 10 second download (with progress bar)
@@ -449,7 +419,9 @@ if ($choice -in "yes", "y", "Y") {
             }
             Classic {
                 $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
-                $Script:ClassicLocation = "$InstallerDir\TeamsSetup_c_w_.exe"
+                $ConverToStaticUrl = curl.exe -fks -X GET -w "%{redirect_url}" $DownloadSource -o NUL
+                $StaticUrlFilename = $ConverToStaticUrl.Split('/')[-1]
+                $Script:ClassicLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($ClassicLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
                     curl.exe -fSLo $ClassicLocation $DownloadSource # 10 second download (with progress bar)
