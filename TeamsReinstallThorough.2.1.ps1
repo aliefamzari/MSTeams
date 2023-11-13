@@ -49,7 +49,8 @@
 #>
 param (
     [ValidateSet("MSIX","BootStrap","Classic")]
-    [string]$DeploymentType = "MSIX"
+    [string]$DeploymentType = "MSIX",
+    [switch]$byPassSSL
 )
 $ErrorActionPreference = "SilentlyContinue"
 
@@ -132,7 +133,8 @@ if ($choice -in "yes", "y", "Y") {
     function ClassicInstall {
         Write-Host "Installing Teams" -ForegroundColor Magenta
         try {
-            $proc = Start-Process -FilePath $ClassicLocation -ArgumentList "-s" -PassThru
+            # $proc = Start-Process -FilePath $ClassicLocation -ArgumentList "-s" -PassThru
+            $proc = Start-Process -FilePath $ClassicLocation -PassThru
         }
         catch {
             Write-Host "Elevation or EPM error. Script stop" -ForegroundColor Red
@@ -392,13 +394,23 @@ if ($choice -in "yes", "y", "Y") {
                 $Script:MSIXLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($MSIXLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $MSIXLocation $DownloadSource # 10 second download (with progress bar)
+                    if ($byPassSSL) {
+                        curl.exe -fSLo $MSIXLocation $DownloadSource --ssl-no-revoke  # 10 second download (with progress bar)
+                    }
+                    else {
+                        curl.exe -fSLo $MSIXLocation $DownloadSource 
+                    }
                 }
                 Else{
                     Write-Host "Installer file already present in Downloads folder. Removing old installer." -ForegroundColor Yellow
                     Remove-item -path $MSIXLocation
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $MSIXLocation $DownloadSource
+                    if ($byPassSSL) {
+                        curl.exe -fSLo $MSIXLocation $DownloadSource --ssl-no-revoke
+                    }
+                    else {
+                        curl.exe -fSLo $MSIXLocation $DownloadSource
+                    }
                 }
             }
             BootStrap {
@@ -408,23 +420,40 @@ if ($choice -in "yes", "y", "Y") {
                 $Script:BootStrapLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($BootStrapLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $BootStrapLocation $DownloadSource # 10 second download (with progress bar)
+                    if ($byPassSSL) {
+                        curl.exe -fSLo $BootStrapLocation $DownloadSource --ssl-no-revoke # 10 second download (with progress bar)
+                    }
+                    else {
+                        curl.exe -fSLo $BootStrapLocation $DownloadSource
+                    }
                 }
                 Else{
                     Write-Host "Installer file already present in Downloads folder. Removing old installer." -ForegroundColor Yellow
                     Remove-item -path $BootStrapLocation
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $BootStrapLocation $DownloadSource
+                    if ($byPassSSL) {
+                        curl.exe -fSLo $BootStrapLocation $DownloadSource --ssl-no-revoke
+                    }
+                    else {
+                        curl.exe -fSLo $BootStrapLocation $DownloadSource
+                    }
                 }
             }
             Classic {
+                # $DownloadSource = "https://teams.microsoft.com/downloads/desktopurl?env=production&plat=windows&arch=x64&managedInstaller=true&download=true"
                 $DownloadSource = "https://go.microsoft.com/fwlink/?linkid=2187327"
-                $ConverToStaticUrl = curl.exe -fks -X GET -w "%{redirect_url}" $DownloadSource -o NUL
-                $StaticUrlFilename = $ConverToStaticUrl.Split('/')[-1]
+                # $ConverToStaticUrl = curl.exe -fks -X GET -w "%{redirect_url}" $DownloadSource -o NUL
+                $ConverToStaticUrl = curl.exe -fkLs -w "%{url_effective},%{filename_effective}" $DownloadSource -OJ
+                $StaticUrlFilename = $ConverToStaticUrl.Split(',')[-1]
                 $Script:ClassicLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($ClassicLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $ClassicLocation $DownloadSource # 10 second download (with progress bar)
+                    if ($byPassSSL) {
+                        curl.exe -fSLo $ClassicLocation $DownloadSource --ssl-no-revoke # 10 second download (with progress bar)
+                    }
+                    else {
+                        curl.exe -fSLo $ClassicLocation $DownloadSource
+                    }
                     # $ProgressPreference = 'SilentlyContinue'
                     # Invoke-WebRequest $DownloadSource -OutFile $InstallerLocation # 6 minutes 11 seconds download (with progress bar, 11 second no progress bar)
                     # $ProgressPreference = 'Continue'
@@ -436,7 +465,12 @@ if ($choice -in "yes", "y", "Y") {
                     Write-Host "Installer file already present in Downloads folder. Removing old installer." -ForegroundColor Yellow
                     Remove-item -path $ClassicLocation
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    curl.exe -fSLo $ClassicLocation $DownloadSource
+                    if ($byPassSSL) {
+                        curl.exe -fSLo $ClassicLocation $DownloadSource --ssl-no-revoke
+                    }
+                    else {
+                        curl.exe -fSLo $ClassicLocation $DownloadSource
+                    }
                 }
             }
         }
