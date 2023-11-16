@@ -391,7 +391,7 @@ if ($choice -in "yes", "y", "Y") {
                 curl.exe -fSLo $InstallerLocation $DownloadSource --ssl-no-revoke  # 10 second download (with progress bar)
             }
             else {
-                curl.exe -fSLo $InstallerLocation $DownloadSource
+                curl.exe -fSLo $InstallerLocation $DownloadSource --ssl-no-revoke # temp solution is to force --ssl-no-revoke
             }
         }
         switch ($DeploymentType) {
