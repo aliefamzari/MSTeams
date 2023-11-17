@@ -2,6 +2,7 @@
     .SYNOPSIS
         MS Teams Tool
         MS Teams Deployment for Single PC
+        Test Git
     
     .DESCRIPTION
         Reinstall MS Teams.
