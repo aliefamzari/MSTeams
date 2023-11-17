@@ -1,5 +1,6 @@
 <#
     .SYNOPSIS
+        MS Teams Tool
         MS Teams Deployment for Single PC
     
     .DESCRIPTION
