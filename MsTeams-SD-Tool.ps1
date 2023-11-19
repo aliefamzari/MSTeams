@@ -27,9 +27,10 @@
     .NOTES
         ===================================================================
         Created with: Visual Studio Code
-        Git Control: Azure DevOps
+        Git Control: GitHub - Migrated over Azure DevOps
         Repository: https://github.com/aliefamzari/MSTeams
         Author: Alif Amzari, ALMAZ
+        Encoding: UTF-8 with BOM
         Previous Author: XSIOL, TOBKO
         Known issues:
             1.  Teams Addin for Outlook   
@@ -163,16 +164,16 @@ function MSTeamsReinstallFull {
         if (-not (Test-Path $TeamsMeetingAddinDir)) {
             Write-Host "Warning!! $TeamsMeetingAddinDir does not exist" -ForegroundColor Red
             Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
-            #Read-Host "Press enter to exit"
-            Exit
+            # Read-Host "Press enter to exit"
+            return
         } 
         else {
             $items = Get-ChildItem $TeamsMeetingAddinDir
             if ($items.Count -eq 0) {
                 Write-Host "Warning!! $TeamsMeetingAddinDir is empty" -ForegroundColor Red
                 Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
-                #Read-Host "Press enter to exit"
-                Exit
+                # Read-Host "Press enter to exit"
+                return
             }
         }
         # Register TeamsAddin DLL   
@@ -268,8 +269,7 @@ function MSTeamsReinstallFull {
     function BackupTeamsAddin {
             $DirExist = Test-Path $TeamsMeetingAddinDir
             if (!$DirExist) {
-                Write-Host "Error!`n$TeamsMeetingAddinDir does not exist. `nPlease reinstall MS Teams Classic
-                `n To install MS Teams Classic, use the script in powershell and execute with parameter -DeploymentType Classic" -ForegroundColor Red
+                Write-Host "Error!`n$TeamsMeetingAddinDir does not exist. `nPlease reinstall MS Teams Classic" -ForegroundColor Red
                 # Read-Host "Press enter to exit"
                 Break
             }
@@ -277,14 +277,13 @@ function MSTeamsReinstallFull {
             $sourceItems = Get-ChildItem $TeamsMeetingAddinDir
             $DirEmpty = $sourceItems.Count -eq 0
             if ($DirEmpty) {
-                Write-Host "Error!`n$TeamsMeetingAddinDir is empty. `nPlease reinstall MS Teams Classic.
-                `n To install MS Teams Classic, use the script in powershell and execute with parameter -DeploymentType Classic" -ForegroundColor Red
+                Write-Host "Error!`n$TeamsMeetingAddinDir is empty. `nPlease reinstall MS Teams Classic." -ForegroundColor Red
                 # Read-Host "Press enter to exit"
                 Break
             }
         
             if (-not (Test-Path $backupPath)) {
-                Write-Host "Error!`nBackup directory $backupPath does not exist."
+                Write-Host "Error!`nBackup directory $backupPath does not exist." -ForegroundColor Red
                 # Read-Host "Press enter to exit"
                 Break
             }
@@ -459,52 +458,52 @@ function MSTeamsReinstallFull {
     
     Switch ($DeploymentType) {
         'BootStrap' {
-                    do {
-                        ShowBannerReinstall
-                        $choice = Read-Host "Do you want to continue? (yes/no)"
-                    } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
-                    if ($choice -in "yes", "y", "Y") {
-                        KillApp
-                        BackupTeamsAddin
-                        DownloadTeams
-                        TeamsUninstall
-                        ClearCache -cacheType teams
-                        BootStrapInstall
-                        RestoreTeamsAddinBackup
-                        TeamsAddinFix
-                        StartApp
-                    }
+            do {
+                ShowBannerReinstall
+                $choice = Read-Host "Do you want to continue? (yes/no)"
+            } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
+            if ($choice -in "yes", "y", "Y") {
+                KillApp
+                BackupTeamsAddin
+                DownloadTeams
+                TeamsUninstall
+                ClearCache -cacheType teams
+                BootStrapInstall
+                RestoreTeamsAddinBackup
+                TeamsAddinFix
+                StartApp
+            }
         }
         'MSIX' {
-                    do {
-                        ShowBannerReinstall
-                        $choice = Read-Host "Do you want to continue? (yes/no)"
-                    } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
-                    if ($choice -in "yes", "y", "Y") {
-                        KillApp
-                        BackupTeamsAddin
-                        DownloadTeams
-                        TeamsUninstall
-                        ClearCache -cacheType teams
-                        MSIXInstall
-                        RestoreTeamsAddinBackup
-                        TeamsAddinFix
-                        StartApp
-                    }
+            do {
+                ShowBannerReinstall
+                $choice = Read-Host "Do you want to continue? (yes/no)"
+            } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
+            if ($choice -in "yes", "y", "Y") {
+                KillApp
+                BackupTeamsAddin
+                DownloadTeams
+                TeamsUninstall
+                ClearCache -cacheType teams
+                MSIXInstall
+                RestoreTeamsAddinBackup
+                TeamsAddinFix
+                StartApp
+            }
         }
         'Classic' {
-                    do {
-                        ShowBannerReinstall
-                        $choice = Read-Host "Do you want to continue? (yes/no)"
-                    } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
-                    if ($choice -in "yes", "y", "Y") {
-                    KillApp
-                    DownloadTeams
-                    TeamsUninstall
-                    ClearCache -cacheType teams
-                    ClassicInstall
-                    StartApp
-                    }
+            do {
+                ShowBannerReinstall
+                $choice = Read-Host "Do you want to continue? (yes/no)"
+            } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
+            if ($choice -in "yes", "y", "Y") {
+            KillApp
+            DownloadTeams
+            TeamsUninstall
+            ClearCache -cacheType teams
+            ClassicInstall
+            StartApp
+            }
         }
     }
 
@@ -514,25 +513,27 @@ function MSTeamsReinstallFull {
             TeamsAddinFix
         }
     }
-    Read-Host "Press Enter to exit"
+    Read-Host "Press Enter to return"
     break
 }
 
 function ShowServiceMenu {
                 $MainTitle = "Ørsted SD Script Tool"
-            $MainMenuTitle =  "[Choose your Option]"
-            $Menu1 = "MS Teams"
-            $Menu1SubMenuTitle = "[MS Teams Options]"
-                $Menu1Option1 = "MS Teams Re-Deploy (Default)"
-                $Menu1Option2 = "MS Teams Re-Deploy (Classic)"
-                $Menu1Option3 = "MS Teams Re-Deploy (BootStrap)"
-                $Menu1Option4 = "Fix MS Teams Addins Missing in Outlook"
+            $MainMenuTitle =  "[MS Teams Options]"
+            $Menu1 = "MS Teams Re-Deploy (Default)"
+            # $Menu1SubMenuTitle = "[MS Teams Options]"
+            #     $Menu1Option1 = "MS Teams Re-Deploy (Default)"
+            #     $Menu1Option2 = "MS Teams Re-Deploy (Classic)"
+            #     $Menu1Option3 = "MS Teams Re-Deploy (BootStrap)"
+            #     $Menu1Option4 = "Fix MS Teams Addins Missing in Outlook"
 
 
-            $Menu2 = "Menu2"
-            $Menu2SubMenuTitle = "[Menu2SubMenuTitle]"
-                $Menu2Option1 = "Menu2Option1"
-                $Menu2Option2 = "Menu2Option2"
+            $Menu2 = "MS Teams Re-Deploy (Classic)"
+            $Menu3 = "MS Teams Re-Deploy (BootStrap)"
+            $Menu4 = "Fix MS Teams Addins Missing in Outlook"
+            # $Menu2SubMenuTitle = "[Menu2SubMenuTitle]"
+            #     $Menu2Option1 = "Menu2Option1"
+            #     $Menu2Option2 = "Menu2Option2"
     $quit = $false
     # $pswho = $env:USERNAME
     # Write-Host "Enter your admin account for Active Directory. This will be use as the credentials to perform password reset." -ForegroundColor Cyan
@@ -547,115 +548,148 @@ function ShowServiceMenu {
         Write-Host -foregroundcolor White " $Menu1"
         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
         Write-Host -foregroundcolor White " $Menu2"
-        # Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
-        # Write-Host -foregroundcolor White " $Menu3"
+        Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
+        Write-Host -foregroundcolor White " $Menu3"
+        Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "4"; Write-Host -foregroundcolor White -NoNewline "]"; `
+        Write-Host -foregroundcolor White " $Menu4"
         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
         Write-Host -foregroundcolor White " Quit"
         Write-Host
-        $choice = Read-Host "Enter Selection [1] or press Q to quit"
+        $choice = Read-Host "Enter Selection [1]-[4] or press Q to quit"
     
         switch ($choice) {
-            '1' {
-                $Menu1SubMenu = $true
-                while ($Menu1SubMenu) {
-                    Clear-Host
-                    Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                    Write-Host -foregroundcolor Cyan `n"$Menu1SubMenuTitle" 
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "1"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " $Menu1Option1"
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " $Menu1Option2"
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " $Menu1Option3"
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "4"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " $Menu1Option4"
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " Back to Main Menu"
-                    Write-Host
-                    $Menu1SubmenuChoice = Read-Host "Enter Select 1-2 or press Q to go back to Main Menu"
+            # '1' {
+            #     $Menu1SubMenu = $true
+            #     while ($Menu1SubMenu) {
+            #         Clear-Host
+            #         Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #         Write-Host -foregroundcolor Cyan `n"$Menu1SubMenuTitle" 
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "1"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " $Menu1Option1"
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " $Menu1Option2"
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " $Menu1Option3"
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "4"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " $Menu1Option4"
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " Back to Main Menu"
+            #         Write-Host
+            #         $Menu1SubmenuChoice = Read-Host "Enter Select 1-2 or press Q to go back to Main Menu"
     
-                    switch ($Menu1SubmenuChoice) {
-                        '1' {
-                            Clear-Host
-                            Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                            # Write-Host "Menu1Choice1"
-                            MSTeamsReinstallFull -DeploymentType MSIX
-                            $prompt = Read-Host "Type Q to go back to $Menu1 "
-                            if ($prompt -eq 'Q') {
-                                continue
-                            }
-                        }
-                        '2' {
-                            Clear-Host
-                            Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                            MSTeamsReinstallFull -DeploymentType Classic
-                            $prompt = Read-Host "Type Q to go back to $Menu1 "
-                            if ($prompt -eq 'Q') {
-                                continue
-                            }
-                        }
-                        '3' {
-                            Clear-Host
-                            Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                            MSTeamsReinstallFull -DeploymentType BootStrap
-                            $prompt = Read-Host "Type Q to go back to $Menu1 "
-                        }
-                        '4' {
-                            Clear-Host
-                            Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                            MSTeamsReinstallFull -Options TeamsAddinFix
-                            $prompt = Read-Host "Type Q to go back to $Menu1 "
-                        }
-                        'Q' {
-                            $Menu1SubMenu = $false
-                            $quit = $false
-                        }
-                    }
+            #         switch ($Menu1SubmenuChoice) {
+            #             '1' {
+            #                 Clear-Host
+            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #                 # Write-Host "Menu1Choice1"
+            #                 MSTeamsReinstallFull -DeploymentType MSIX
+            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
+            #                 if ($prompt -eq 'Q') {
+            #                     continue
+            #                 }
+            #             }
+            #             '2' {
+            #                 Clear-Host
+            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #                 MSTeamsReinstallFull -DeploymentType Classic
+            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
+            #                 if ($prompt -eq 'Q') {
+            #                     continue
+            #                 }
+            #             }
+            #             '3' {
+            #                 Clear-Host
+            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #                 MSTeamsReinstallFull -DeploymentType BootStrap
+            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
+            #             }
+            #             '4' {
+            #                 Clear-Host
+            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #                 MSTeamsReinstallFull -Options TeamsAddinFix
+            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
+            #             }
+            #             'Q' {
+            #                 $Menu1SubMenu = $false
+            #                 $quit = $false
+            #             }
+            #         }
+            #     }
+            # }
+            # '2' {
+            #     $Menu2SubMenu = $true
+            #     while ($Menu2SubMenu) {
+            #         Clear-Host
+            #         Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #         Write-Host -foregroundcolor Cyan "$Menu2SubMenuTitle" 
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "1"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " $Menu2Option1"
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " $Menu2Option2"
+            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
+            #         Write-Host -foregroundcolor White " Back to Main Menu"
+            #         Write-Host
+            #         $Menu2SubmenuChoice = Read-Host "Enter Select 1-2 or press Q to go back to Main Menu"
+
+            #         switch ($Menu2SubmenuChoice) {
+            #             '1' {
+            #                 Clear-Host
+            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #                 Write-Host "Menu2Choice1"
+            #                 $prompt = Read-Host "Type Q to go back to $Menu2 "
+            #                 if ($prompt -eq 'Q') {
+            #                     continue
+            #                 }
+            #             }
+            #             '2' {
+            #                 Clear-Host
+            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #                 Write-Host "Menu2Choice2"
+            #                 $prompt = Read-Host "Type Q to go back to $Menu2 "
+            #                 if ($prompt -eq 'Q') {
+            #                     continue
+            #                 }
+            #             }
+            #             # '3' {
+            #             #     $Menu2SubMenu = $false
+            #             # }
+            #             'Q' {
+            #                 $Menu2SubMenu = $false
+            #                 $quit = $false
+            #             }
+            #         }
+            #     }
+            # }
+            '1' {
+                Clear-Host
+                Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+                # Write-Host "Menu1Choice1"
+                MSTeamsReinstallFull -DeploymentType MSIX
+                $prompt = Read-Host "Type Q to go back to $Menu1 "
+                if ($prompt -eq 'Q') {
+                    continue
                 }
             }
             '2' {
-                $Menu2SubMenu = $true
-                while ($Menu2SubMenu) {
-                    Clear-Host
-                    Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                    Write-Host -foregroundcolor Cyan "$Menu2SubMenuTitle" 
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "1"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " $Menu2Option1"
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " $Menu2Option2"
-                    Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
-                    Write-Host -foregroundcolor White " Back to Main Menu"
-                    Write-Host
-                    $Menu2SubmenuChoice = Read-Host "Enter Select 1-2 or press Q to go back to Main Menu"
-
-                    switch ($Menu2SubmenuChoice) {
-                        '1' {
-                            Clear-Host
-                            Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                            Write-Host "Menu2Choice1"
-                            $prompt = Read-Host "Type Q to go back to $Menu2 "
-                            if ($prompt -eq 'Q') {
-                                continue
-                            }
-                        }
-                        '2' {
-                            Clear-Host
-                            Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                            Write-Host "Menu2Choice2"
-                            $prompt = Read-Host "Type Q to go back to $Menu2 "
-                            if ($prompt -eq 'Q') {
-                                continue
-                            }
-                        }
-                        # '3' {
-                        #     $Menu2SubMenu = $false
-                        # }
-                        'Q' {
-                            $Menu2SubMenu = $false
-                            $quit = $false
-                        }
-                    }
+                Clear-Host
+                Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+                MSTeamsReinstallFull -DeploymentType Classic
+                $prompt = Read-Host "Type Q to go back to $Menu1 "
+                if ($prompt -eq 'Q') {
+                    continue
                 }
+            }
+            '3' {
+                Clear-Host
+                Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+                MSTeamsReinstallFull -DeploymentType BootStrap
+                $prompt = Read-Host "Type Q to go back to $Menu1 "
+            }
+            '4' {
+                Clear-Host
+                Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+                MSTeamsReinstallFull -Options TeamsAddinFix
+                $prompt = Read-Host "Type Q to go back to $Menu1 "
             }
             'Q' {
                 $quit = $true
