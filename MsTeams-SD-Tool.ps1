@@ -480,15 +480,21 @@ function MSTeamsReinstallFull {
                         }
             }
             'MSIX' {
-                KillApp
-                BackupTeamsAddin
-                DownloadTeams
-                TeamsUninstall
-                ClearCache
-                MSIXInstall
-                RestoreTeamsAddinBackup
-                TeamsAddinFix
-                StartApp
+                do {
+                    ShowBannerReinstall
+                    $choice = Read-Host "Do you want to continue? (yes/no)"
+                } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
+                if ($choice -in "yes", "y", "Y") {
+                    KillApp
+                    BackupTeamsAddin
+                    DownloadTeams
+                    TeamsUninstall
+                    ClearCache
+                    MSIXInstall
+                    RestoreTeamsAddinBackup
+                    TeamsAddinFix
+                    StartApp
+                }
             }
             'Classic' {
                 KillApp
