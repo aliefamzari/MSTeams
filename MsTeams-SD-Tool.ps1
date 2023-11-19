@@ -61,6 +61,7 @@ function MSTeamsReinstallFull {
         [string]$Options
     )
     $ErrorActionPreference = "SilentlyContinue"
+    $ProgressPreference = "SilentlyContinue"
 
     function ShowBanner {
         Write-Host "Are you sure you wish to completely reinstall MS Teams?"
