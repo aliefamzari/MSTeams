@@ -63,19 +63,7 @@ function MSTeamsReinstallFull {
     $ErrorActionPreference = "SilentlyContinue"
     $ProgressPreference = "SilentlyContinue"
 
-    function ShowBanner {
-        Write-Host "Are you sure you wish to completely reinstall MS Teams?"
-        Write-Host "The default deployment will removed the Classic Teams in favor of New Teams."
-        # Write-Host "The default deployment type is MSIX."
-        # Write-Host "To install MS Teams Classic, use -DeploymentType Classic" 
-        # Write-Host "To install using BootStrap package, use -DeploymentType BootStrap"
-        Write-Host "This will delete cache of Internet Explorer, MS Edge, Chrome & Firefox"
-        Write-Host "Please ensure you save and close your Outlook and browsers." -ForegroundColor Red
-        # Display the current deployment type in green with a newline
-        Write-Host -NoNewline "The current deployment is "
-        Write-Host -NoNewline -ForegroundColor Green "$DeploymentType"
-        Write-Host
-    }
+
 
     $InstallerDir = "$ENV:USERPROFILE\Downloads"
     $TeamsMeetingAddinDir = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
@@ -88,6 +76,19 @@ function MSTeamsReinstallFull {
     
     # if ($choice -in "yes", "y", "Y") {
         #Region Function
+        function ShowBannerReinstall {
+            Write-Host "Are you sure you wish to completely reinstall MS Teams?"
+            Write-Host "The default deployment will removed the Classic Teams in favor of New Teams."
+            # Write-Host "The default deployment type is MSIX."
+            # Write-Host "To install MS Teams Classic, use -DeploymentType Classic" 
+            # Write-Host "To install using BootStrap package, use -DeploymentType BootStrap"
+            Write-Host "This will delete cache of Internet Explorer, MS Edge, Chrome & Firefox"
+            Write-Host "Please ensure you save and close your Outlook and browsers." -ForegroundColor Red
+            # Display the current deployment type in green with a newline
+            Write-Host -NoNewline "The current deployment is "
+            Write-Host -NoNewline -ForegroundColor Green "$DeploymentType"
+            Write-Host
+        }
         function KillApp {
             #Stops Microsoft Teams
             Write-Host "Stopping Teams Process" -ForegroundColor Yellow
@@ -462,15 +463,21 @@ function MSTeamsReinstallFull {
     
         Switch ($DeploymentType) {
             'BootStrap' {
-                KillApp
-                BackupTeamsAddin
-                DownloadTeams
-                TeamsUninstall
-                ClearCache
-                BootStrapInstall
-                RestoreTeamsAddinBackup
-                TeamsAddinFix
-                StartApp
+                        do {
+                            ShowBannerReinstall
+                            $choice = Read-Host "Do you want to continue? (yes/no)"
+                        } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
+                        if ($choice -in "yes", "y", "Y") {
+                            KillApp
+                            BackupTeamsAddin
+                            DownloadTeams
+                            TeamsUninstall
+                            ClearCache
+                            BootStrapInstall
+                            RestoreTeamsAddinBackup
+                            TeamsAddinFix
+                            StartApp
+                        }
             }
             'MSIX' {
                 KillApp
@@ -492,16 +499,19 @@ function MSTeamsReinstallFull {
                 StartApp
             }
         }
-        Switch ($Options) {
-            TeamsAddinFix {TeamsAddinFix}
-        }
-        Read-Host "Press Enter to exit"
-        break
+
+
+
     # }
     # else 
     # {
     #     Write-Host "You chose 'no'."
     # }
+    Switch ($Options) {
+        TeamsAddinFix {TeamsAddinFix}
+    }
+    Read-Host "Press Enter to exit"
+    break
 }
 
 function ShowServiceMenu {
