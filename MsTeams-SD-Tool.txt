@@ -57,7 +57,8 @@ function MSTeamsReinstallFull {
         [ValidateSet("TeamsAddinFix")]
         [string]$Options,
         [ValidateSet("all","teams")]
-        [string]$cacheType
+        [string]$cacheType,
+        [switch]$BackupTeamsAddin
     )
     $ErrorActionPreference = "SilentlyContinue"
     $ProgressPreference = "SilentlyContinue"
@@ -146,22 +147,76 @@ function MSTeamsReinstallFull {
             # #Read-Host "Press enter to exit"
             Break  
         }
+        # finally {
+        #     $jsonContent = '{"enableProcessIntegrityLevel": false}'
+        #     $filePath = Join-Path $env:APPDATA\Microsoft\Teams hooks.json
+        #     $jsonContent | Set-Content -Path $filePath -Encoding UTF8
+        #     Write-Host "JSON file created at: $filePath"
+        # }
         $proc.WaitForExit()
     }
+    # function StartApp {
+    #     if ($DeploymentType -in "MSIX", "BootStrap") {
+    #         $AppPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\ms-teams.exe"
+    #     } else {
+    #         $AppPath = "$env:APPDATA\Microsoft\Teams\Teams.exe"
+    #     }
+    #     $ExeExist = Test-Path $AppPath
+    #     if ($ExeExist) {
+    #         Write-Host "Starting MS Teams" -ForegroundColor Green
+    #         Start-Process $AppPath
+    #     }
+    #     else {
+    #         Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
+    #         Write-Host "Please re-install again using different deployment method" -ForegroundColor Red
+    #     }
+    # }
     function StartApp {
         if ($DeploymentType -in "MSIX", "BootStrap") {
             $AppPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\ms-teams.exe"
         } else {
-            $AppPath = "$env:LOCALAPPDATA\Microsoft\Teams\current\Teams.exe"
+            $AppPath = "$env:APPDATA\Microsoft\Teams\Teams.exe"
         }
-        $ExeExist = Test-Path $AppPath
-        if ($ExeExist) {
-            Write-Host "Starting MS Teams" -ForegroundColor Green
-            Start-Process $AppPath
-        }
-        else {
-            Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
-            Write-Host "Please re-install again using different deployment method" -ForegroundColor Red
+        Switch ($DeploymentType){
+            'MSIX' {
+                $ExeExist = Test-Path $AppPath
+                if ($ExeExist) {
+                    Write-Host "Starting MS Teams" -ForegroundColor Green
+                    Start-Process $AppPath
+                }
+                else {
+                    Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
+                    Write-Host "Please re-install again using different deployment method" -ForegroundColor Red
+                }
+            }
+            'BootStrap'{
+                while ($true) {
+                    $process = Get-Process -Name TeamsBootStrapper -ErrorAction SilentlyContinue
+                    if (-not $process) {
+                        # Process has ended, execute your script or command here
+                        $ExeExist = Test-Path $AppPath
+                        if ($ExeExist) {
+                            Write-Host "Starting MS Teams" -ForegroundColor Green
+                            Start-Process $AppPath
+                        }
+                        else {
+                            Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
+                            Write-Host "Please re-install again using different deployment method" -ForegroundColor Red
+                        }
+                        break  # Exit the loop
+                    }
+                    # Wait for a moment before checking again
+                    Start-Sleep -Seconds 5
+                }
+
+            }
+            'Classic'{
+                $ExeExist = Test-Path $AppPath
+                if ($ExeExist) {
+                    Write-Host "Starting MS Teams" -ForegroundColor Green
+                    Start-Process $AppPath
+            }
+            }
         }
     }
     function TeamsAddinFix {
@@ -458,6 +513,14 @@ function MSTeamsReinstallFull {
             }
         }
     }
+
+    function UninstallTeamsAddins {
+        $Program = Get-WmiObject -Class Win32_Product | Where-Object { $_.IdentifyingNumber -match "{A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91}"}
+        if ($Program) {
+            Write-Host "Uninstalling Teams Addins for Outlook" -ForegroundColor Yellow
+            $Program.uninstall() |Out-Null
+        }
+    }
     #EndRegion Function
     
     Switch ($DeploymentType) {
@@ -468,13 +531,14 @@ function MSTeamsReinstallFull {
             } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
             if ($choice -in "yes", "y", "Y") {
                 KillApp
-                BackupTeamsAddin
+                # BackupTeamsAddin
                 DownloadTeams
                 TeamsUninstall
+                UninstallTeamsAddins
                 ClearCache -cacheType $cacheType
                 BootStrapInstall
-                RestoreTeamsAddinBackup
-                TeamsAddinFix
+                # RestoreTeamsAddinBackup
+                # TeamsAddinFix
                 StartApp
             }
         }
@@ -485,13 +549,14 @@ function MSTeamsReinstallFull {
             } while ($choice -notin "yes", "no", "y", "n", "Y", "N")
             if ($choice -in "yes", "y", "Y") {
                 KillApp
-                BackupTeamsAddin
+                # BackupTeamsAddin
                 DownloadTeams
                 TeamsUninstall
+                UninstallTeamsAddins
                 ClearCache -cacheType $cacheType
                 MSIXInstall
-                RestoreTeamsAddinBackup
-                TeamsAddinFix
+                # RestoreTeamsAddinBackup
+                # TeamsAddinFix
                 StartApp
             }
         }
@@ -534,7 +599,7 @@ function ShowServiceMenu {
 
             $Menu2 = "MS Teams Re-Deploy (Classic)"
             $Menu3 = "MS Teams Re-Deploy (BootStrap)"
-            $Menu4 = "Fix MS Teams Addins Missing in Outlook"
+            $Menu4 = "Fix MS Teams Add-ins Missing in Outlook"
             # $Menu2SubMenuTitle = "[Menu2SubMenuTitle]"
             #     $Menu2Option1 = "Menu2Option1"
             #     $Menu2Option2 = "Menu2Option2"
