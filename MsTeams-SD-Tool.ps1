@@ -64,6 +64,7 @@ function MSTeamsReinstallFull {
     $ProgressPreference = "SilentlyContinue"
     $InstallerDir = "$ENV:USERPROFILE\Downloads"
     $TeamsMeetingAddinDir = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
+    $TeamsMeetingAddinDir2 = "C:\Program Files (x86)\Microsoft\TeamsMeetingAddin"
     $backupPath = "$env:LOCALAPPDATA\Microsoft"
     $backupDestination = Join-Path $backupPath "TeamsMeetingAddinBackup"
 
@@ -220,23 +221,30 @@ function MSTeamsReinstallFull {
         }
     }
     function TeamsAddinFix {
-        if (-not (Test-Path $TeamsMeetingAddinDir)) {
-            Write-Host "Warning!! $TeamsMeetingAddinDir does not exist" -ForegroundColor Red
+        param (
+            [switch]$Resiliency
+        )
+        if (Test-path $TeamsMeetingAddinDir ){
+            $TruePath = $TeamsMeetingAddinDir
+        }
+        if (Test-Path $TeamsMeetingAddinDir2){
+            $TruePath = $TeamsMeetingAddinDir2
+        }
+        
+        if (-not (Test-Path $TeamsMeetingAddinDir) -and (Test-path $TeamsMeetingAddinDir2)){
+            Write-Host "Warning!! Teams Meeting DLL does not exist" -ForegroundColor Red
+            Write-Host "Please reinstall MS Teams" -ForegroundColor Red
+            Return
+        }
+        $items = Get-ChildItem $TruePath
+        if ($items.Count -eq 0) {
+            Write-Host "Warning!! $TruePath is empty" -ForegroundColor Red
             Write-Host "Please reinstall MS Teams" -ForegroundColor Red
             # Read-Host "Press enter to exit"
             return
         } 
-        else {
-            $items = Get-ChildItem $TeamsMeetingAddinDir
-            if ($items.Count -eq 0) {
-                Write-Host "Warning!! $TeamsMeetingAddinDir is empty" -ForegroundColor Red
-                Write-Host "Please reinstall MS Teams" -ForegroundColor Red
-                # Read-Host "Press enter to exit"
-                return
-            }
-        }
-        # Register TeamsAddin DLL   
-        $LattestDLLversion = (Get-ChildItem -Path $TeamsMeetingAddinDir -Directory |Sort-Object CreationTime -Descending| Select-Object -First 1)
+                # Register TeamsAddin DLL   
+        $LattestDLLversion = (Get-ChildItem -Path $TruePath -Directory |Sort-Object CreationTime -Descending| Select-Object -First 1)
         $LattestDLLversion = ($LattestDLLversion).FullName
         $teamsdotdead = "$LattestDLLversion\.dead"
         $teamsdll = "$LattestDLLversion\x64\Microsoft.Teams.AddinLoader.dll"
@@ -281,10 +289,11 @@ function MSTeamsReinstallFull {
             }
         }
         
-        # KB0016283 - Add registry entry (if not exist) - KB from Dina Rantzau https://onewebshop.service-now.com/kb_view.do?sysparm_article=KB0016283
+        #Region KB0016283 - Add registry entry (if not exist) - KB from Dina Rantzau https://onewebshop.service-now.com/kb_view.do?sysparm_article=KB0016283
+if ($Resiliency) {
         Write-Host "Applying KB0016283" -ForegroundColor Yellow
         # ResiliencyTeamsAddinConnect1
-        $ResiliencyTeamsAddinPath1 = 'HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\'
+        $ResiliencyTeamsAddinPath1 = "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\"
         $ResiliencyTeamsAddinConnect1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.Connect -ErrorAction SilentlyContinue
         $ResiliencyTeamsAddinFastConnect1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.FastConnect -ErrorAction SilentlyContinue
     
@@ -305,7 +314,7 @@ function MSTeamsReinstallFull {
         }
     
         #ResiliencyTeamsAddinConnect2
-        $ResiliencyTeamsAddinPath2 = 'HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\'
+        $ResiliencyTeamsAddinPath2 = "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\"
         $ResiliencyTeamsAddinConnect2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.Connect
         $ResiliencyTeamsAddinFastConnect2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.FastConnect
     
@@ -323,6 +332,8 @@ function MSTeamsReinstallFull {
         else {
             Write-host "ResiliencyTeamsAddinFastConnect2 already exist"
         }
+}
+        #endregion
         Write-Host "Done Registring MS TeamsAddin!" -ForegroundColor Green
     }
     function BackupTeamsAddin {
