@@ -387,8 +387,10 @@ if ($Resiliency) {
     
         Write-Host "Clearing Teams Disk Cache" -ForegroundColor Yellow
         if ($cacheType -eq "teams" -or $cacheType -eq "all") {
-            "application cache\cache", "blob_storage", "databases", "cache", "gpucache", "Indexeddb", "Local Storage", "tmp" | ForEach-Object { CleanCache "$env:APPDATA\Microsoft\teams\$_" }
-            Write-Host "Teams Disk Cache Cleaned" -ForegroundColor Green
+            "application cache\cache", "blob_storage", "databases", "cache", "gpucache", "Indexeddb", "Local Storage", "tmp" | ForEach-Object { CleanCache "$env:APPDATA\Microsoft\teams\$_" }  #Classic Teams
+            Write-Host "Classic Teams Cache Cleaned" -ForegroundColor Green
+            "MSTeams" |ForEach-Object {CleanCache "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\$_"} #New Teams
+            Write-Host "New Teams Cache Cleaned" -ForegroundColor Green
         }
     
         if ($cacheType -eq "all") {
