@@ -64,6 +64,7 @@ function MSTeamsReinstallFull {
     $ProgressPreference = "SilentlyContinue"
     $InstallerDir = "$ENV:USERPROFILE\Downloads"
     $TeamsMeetingAddinDir = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
+    $TeamsMeetingAddinDir2 = "C:\Program Files (x86)\Microsoft\TeamsMeetingAddin"
     $backupPath = "$env:LOCALAPPDATA\Microsoft"
     $backupDestination = Join-Path $backupPath "TeamsMeetingAddinBackup"
 
@@ -220,23 +221,30 @@ function MSTeamsReinstallFull {
         }
     }
     function TeamsAddinFix {
-        if (-not (Test-Path $TeamsMeetingAddinDir)) {
-            Write-Host "Warning!! $TeamsMeetingAddinDir does not exist" -ForegroundColor Red
-            Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
+        param (
+            [switch]$Resiliency
+        )
+        if (Test-path $TeamsMeetingAddinDir ){
+            $TruePath = $TeamsMeetingAddinDir
+        }
+        if (Test-Path $TeamsMeetingAddinDir2){
+            $TruePath = $TeamsMeetingAddinDir2
+        }
+        
+        if (-not (Test-Path $TeamsMeetingAddinDir) -and (Test-path $TeamsMeetingAddinDir2)){
+            Write-Host "Warning!! Teams Meeting DLL does not exist" -ForegroundColor Red
+            Write-Host "Please reinstall MS Teams" -ForegroundColor Red
+            Return
+        }
+        $items = Get-ChildItem $TruePath
+        if ($items.Count -eq 0) {
+            Write-Host "Warning!! $TruePath is empty" -ForegroundColor Red
+            Write-Host "Please reinstall MS Teams" -ForegroundColor Red
             # Read-Host "Press enter to exit"
             return
         } 
-        else {
-            $items = Get-ChildItem $TeamsMeetingAddinDir
-            if ($items.Count -eq 0) {
-                Write-Host "Warning!! $TeamsMeetingAddinDir is empty" -ForegroundColor Red
-                Write-Host "Please reinstall MS Teams Classic" -ForegroundColor Red
-                # Read-Host "Press enter to exit"
-                return
-            }
-        }
-        # Register TeamsAddin DLL   
-        $LattestDLLversion = (Get-ChildItem -Path $TeamsMeetingAddinDir -Directory |Sort-Object CreationTime -Descending| Select-Object -First 1)
+                # Register TeamsAddin DLL   
+        $LattestDLLversion = (Get-ChildItem -Path $TruePath -Directory |Sort-Object CreationTime -Descending| Select-Object -First 1)
         $LattestDLLversion = ($LattestDLLversion).FullName
         $teamsdotdead = "$LattestDLLversion\.dead"
         $teamsdll = "$LattestDLLversion\x64\Microsoft.Teams.AddinLoader.dll"
@@ -281,10 +289,11 @@ function MSTeamsReinstallFull {
             }
         }
         
-        # KB0016283 - Add registry entry (if not exist) - KB from Dina Rantzau https://onewebshop.service-now.com/kb_view.do?sysparm_article=KB0016283
+        #Region KB0016283 - Add registry entry (if not exist) - KB from Dina Rantzau https://onewebshop.service-now.com/kb_view.do?sysparm_article=KB0016283
+if ($Resiliency) {
         Write-Host "Applying KB0016283" -ForegroundColor Yellow
         # ResiliencyTeamsAddinConnect1
-        $ResiliencyTeamsAddinPath1 = 'HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\'
+        $ResiliencyTeamsAddinPath1 = "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\"
         $ResiliencyTeamsAddinConnect1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.Connect -ErrorAction SilentlyContinue
         $ResiliencyTeamsAddinFastConnect1 = Get-ItemPropertyValue -Path "HKCU:\software\Policies\Microsoft\office\16.0\outlook\resiliency\addinlist\" -Name TeamsAddin.FastConnect -ErrorAction SilentlyContinue
     
@@ -305,7 +314,7 @@ function MSTeamsReinstallFull {
         }
     
         #ResiliencyTeamsAddinConnect2
-        $ResiliencyTeamsAddinPath2 = 'HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\'
+        $ResiliencyTeamsAddinPath2 = "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\"
         $ResiliencyTeamsAddinConnect2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.Connect
         $ResiliencyTeamsAddinFastConnect2 = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DoNotDisableAddinList\" -Name TeamsAddin.FastConnect
     
@@ -323,6 +332,8 @@ function MSTeamsReinstallFull {
         else {
             Write-host "ResiliencyTeamsAddinFastConnect2 already exist"
         }
+}
+        #endregion
         Write-Host "Done Registring MS TeamsAddin!" -ForegroundColor Green
     }
     function BackupTeamsAddin {
@@ -376,8 +387,10 @@ function MSTeamsReinstallFull {
     
         Write-Host "Clearing Teams Disk Cache" -ForegroundColor Yellow
         if ($cacheType -eq "teams" -or $cacheType -eq "all") {
-            "application cache\cache", "blob_storage", "databases", "cache", "gpucache", "Indexeddb", "Local Storage", "tmp" | ForEach-Object { CleanCache "$env:APPDATA\Microsoft\teams\$_" }
-            Write-Host "Teams Disk Cache Cleaned" -ForegroundColor Green
+            "application cache\cache", "blob_storage", "databases", "cache", "gpucache", "Indexeddb", "Local Storage", "tmp" | ForEach-Object { CleanCache "$env:APPDATA\Microsoft\teams\$_" }  #Classic Teams
+            Write-Host "Classic Teams Cache Cleaned" -ForegroundColor Green
+            "MSTeams" |ForEach-Object {CleanCache "$env:LOCALAPPDATA\Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\$_"} #New Teams
+            Write-Host "New Teams Cache Cleaned" -ForegroundColor Green
         }
     
         if ($cacheType -eq "all") {
@@ -499,6 +512,7 @@ function MSTeamsReinstallFull {
                 # $ConverToStaticUrl = curl.exe -fks -X GET -w "%{redirect_url}" $DownloadSource -o NUL
                 $ConverToStaticUrl = curl.exe -fkLs -w "%{url_effective},%{filename_effective}" $DownloadSource -OJ
                 $StaticUrlFilename = $ConverToStaticUrl.Split(',')[-1]
+                # $StaticUrlFilename = $ConverToStaticUrl.Split('/')[-1]
                 $Script:InstallerLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($InstallerLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
@@ -589,7 +603,7 @@ function MSTeamsReinstallFull {
 function ShowServiceMenu {
                 $MainTitle = "Ørsted SD Script Tool"
             $MainMenuTitle =  "[MS Teams Options]"
-            $Menu1 = "MS Teams Re-Deploy (Default)"
+            $Menu1 = "MS Teams Re-Deploy"
             # $Menu1SubMenuTitle = "[MS Teams Options]"
             #     $Menu1Option1 = "MS Teams Re-Deploy (Default)"
             #     $Menu1Option2 = "MS Teams Re-Deploy (Classic)"
@@ -597,9 +611,9 @@ function ShowServiceMenu {
             #     $Menu1Option4 = "Fix MS Teams Addins Missing in Outlook"
 
 
-            $Menu2 = "MS Teams Re-Deploy (Classic)"
-            $Menu3 = "MS Teams Re-Deploy (BootStrap)"
-            $Menu4 = "Fix MS Teams Add-ins Missing in Outlook"
+            # $Menu2 = "MS Teams Re-Deploy (Classic)"
+            # $Menu3 = "MS Teams Re-Deploy (BootStrap)"
+            $Menu2 = "Fix MS Teams Add-ins Missing in Outlook"
             # $Menu2SubMenuTitle = "[Menu2SubMenuTitle]"
             #     $Menu2Option1 = "Menu2Option1"
             #     $Menu2Option2 = "Menu2Option2"
@@ -617,14 +631,14 @@ function ShowServiceMenu {
         Write-Host -foregroundcolor White " $Menu1"
         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
         Write-Host -foregroundcolor White " $Menu2"
-        Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
-        Write-Host -foregroundcolor White " $Menu3"
-        Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "4"; Write-Host -foregroundcolor White -NoNewline "]"; `
-        Write-Host -foregroundcolor White " $Menu4"
+        # Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
+        # Write-Host -foregroundcolor White " $Menu3"
+        # Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "4"; Write-Host -foregroundcolor White -NoNewline "]"; `
+        # Write-Host -foregroundcolor White " $Menu4"
         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
         Write-Host -foregroundcolor White " Quit"
         Write-Host
-        $choice = Read-Host "Enter Selection [1]-[4] or press Q to quit"
+        $choice = Read-Host "Enter Selection [1]-[2] or press Q to quit"
     
         switch ($choice) {
             # '1' {
@@ -739,22 +753,22 @@ function ShowServiceMenu {
                     continue
                 }
             }
+            # '2' {
+            #     Clear-Host
+            #     Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #     MSTeamsReinstallFull -DeploymentType Classic -cacheType teams
+            #     $prompt = Read-Host "Type Q to go back to $Menu1 "
+            #     if ($prompt -eq 'Q') {
+            #         continue
+            #     }
+            # }
+            # '3' {
+            #     Clear-Host
+            #     Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+            #     MSTeamsReinstallFull -DeploymentType BootStrap -cacheType teams
+            #     $prompt = Read-Host "Type Q to go back to $Menu1 "
+            # }
             '2' {
-                Clear-Host
-                Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                MSTeamsReinstallFull -DeploymentType Classic -cacheType teams
-                $prompt = Read-Host "Type Q to go back to $Menu1 "
-                if ($prompt -eq 'Q') {
-                    continue
-                }
-            }
-            '3' {
-                Clear-Host
-                Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-                MSTeamsReinstallFull -DeploymentType BootStrap -cacheType teams
-                $prompt = Read-Host "Type Q to go back to $Menu1 "
-            }
-            '4' {
                 Clear-Host
                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
                 MSTeamsReinstallFull -Options TeamsAddinFix
