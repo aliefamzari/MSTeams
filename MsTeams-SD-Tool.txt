@@ -53,7 +53,6 @@ function MSTeamsReinstallFull {
     param (
         [ValidateSet("MSIX","BootStrap","Classic")]
         [string]$DeploymentType,
-        [switch]$byPassSSL,
         [ValidateSet("TeamsAddinFix")]
         [string]$Options,
         [ValidateSet("all","teams")]
@@ -174,7 +173,7 @@ function MSTeamsReinstallFull {
     # }
     function StartApp {
         if ($DeploymentType -in "MSIX", "BootStrap") {
-            $AppPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\ms-teams.exe"
+            $AppPath = Get-Command -Name "ms-teams.exe" | Select-Object -ExpandProperty Source
         } else {
             $AppPath = "$env:APPDATA\Microsoft\Teams\Teams.exe"
         }
@@ -198,7 +197,8 @@ function MSTeamsReinstallFull {
                         $ExeExist = Test-Path $AppPath
                         if ($ExeExist) {
                             Write-Host "Starting MS Teams" -ForegroundColor Green
-                            Start-Process $AppPath
+                            Start-Sleep 5
+                            Start-Process "MS-Teams.exe"
                         }
                         else {
                             Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
@@ -465,13 +465,24 @@ if ($Resiliency) {
         Rename-Item -path $backupDestination -NewName $TeamsMeetingAddinDir
     }
     function DownloadTeams {
+        function Iwd {
+            try {
+                # Write-Host "Trying with Invoke-Webrequest"
+            Invoke-WebRequest $DownloadSource -OutFile $InstallerLocation
+            }
+            catch {
+            Write-Host "Download Error!!" -ForegroundColor Red-
+            Exit
+            }
+        }
         function CurlDownload {
-            if ($byPassSSL) {
-                curl.exe -fSLo $InstallerLocation $DownloadSource --ssl-no-revoke  # 10 second download (with progress bar)
-            }
-            else {
-                curl.exe -fSLo $InstallerLocation $DownloadSource --ssl-no-revoke # temp solution is to force --ssl-no-revoke
-            }
+                curl.exe -fSLo $InstallerLocation $DownloadSource --ssl-no-revoke # 10 second download (with progress bar)
+                # $Script:LASTEXITCODE = $LASTEXITCODE
+                if ($LASTEXITCODE -eq 56){
+                    Write-Host "Curl.exe Download Error!!" -ForegroundColor Red
+                    Iwd
+                }
+  
         }
         switch ($DeploymentType) {
             MSIX {
@@ -481,13 +492,15 @@ if ($Resiliency) {
                 $Script:InstallerLocation = "$InstallerDir\$StaticUrlFilename"
                 If([System.IO.File]::Exists($InstallerLocation) -eq $false){
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    CurlDownload
+                    # CurlDownload
+                    Iwd
                 }
                 Else{
                     Write-Host "Installer file already present in Downloads folder. Removing old installer." -ForegroundColor Yellow
                     Remove-item -path $InstallerLocation
                     Write-Host "Downloading Teams, please wait." -ForegroundColor Magenta
-                    CurlDownload
+                    # CurlDownload
+                    Iwd
                 }
             }
             BootStrap {
@@ -747,7 +760,7 @@ function ShowServiceMenu {
                 Clear-Host
                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
                 # Write-Host "Menu1Choice1"
-                MSTeamsReinstallFull -DeploymentType MSIX -cacheType teams
+                MSTeamsReinstallFull -DeploymentType BootStrap -cacheType teams
                 $prompt = Read-Host "Type Q to go back to $Menu1 "
                 if ($prompt -eq 'Q') {
                     continue
