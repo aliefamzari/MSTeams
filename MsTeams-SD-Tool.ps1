@@ -172,6 +172,7 @@ function MSTeamsReinstallFull {
     #     }
     # }
     function StartApp {
+        Start-Sleep 5
         if ($DeploymentType -in "MSIX", "BootStrap") {
             $AppPath = Get-Command -Name "ms-teams.exe" | Select-Object -ExpandProperty Source
         } else {
@@ -198,7 +199,7 @@ function MSTeamsReinstallFull {
                         if ($ExeExist) {
                             Write-Host "Starting MS Teams" -ForegroundColor Green
                             Start-Sleep 5
-                            Start-Process "MS-Teams.exe"
+                            Start-Process $AppPath
                         }
                         else {
                             Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
