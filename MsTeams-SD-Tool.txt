@@ -64,6 +64,7 @@ function MSTeamsReinstallFull {
     $InstallerDir = "$ENV:USERPROFILE\Downloads"
     $TeamsMeetingAddinDir = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin"
     $TeamsMeetingAddinDir2 = "C:\Program Files (x86)\Microsoft\TeamsMeetingAddin"
+    $TeamsMeetingAddinDir3 = "$env:LOCALAPPDATA\Microsoft\TeamsMeetingAdd-in"
     $backupPath = "$env:LOCALAPPDATA\Microsoft"
     $backupDestination = Join-Path $backupPath "TeamsMeetingAddinBackup"
 
@@ -231,12 +232,15 @@ function MSTeamsReinstallFull {
         if (Test-Path $TeamsMeetingAddinDir2){
             $TruePath = $TeamsMeetingAddinDir2
         }
-        
-        if (-not (Test-Path $TeamsMeetingAddinDir) -and (Test-path $TeamsMeetingAddinDir2)){
+        if (Test-Path $TeamsMeetingAddinDir3){
+            $TruePath = $TeamsMeetingAddinDir3
+        }
+        if (-not (Test-Path $TeamsMeetingAddinDir) -and (-not (Test-Path $TeamsMeetingAddinDir3)) -and (Test-Path $TeamsMeetingAddinDir2)){
             Write-Host "Warning!! Teams Meeting DLL does not exist" -ForegroundColor Red
             Write-Host "Please reinstall MS Teams" -ForegroundColor Red
             Return
         }
+        
         $items = Get-ChildItem $TruePath
         if ($items.Count -eq 0) {
             Write-Host "Warning!! $TruePath is empty" -ForegroundColor Red
