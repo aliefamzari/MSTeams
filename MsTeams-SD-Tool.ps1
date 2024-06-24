@@ -53,7 +53,7 @@ function MSTeamsReinstallFull {
     param (
         [ValidateSet("MSIX","BootStrap","Classic")]
         [string]$DeploymentType,
-        [ValidateSet("TeamsAddinFix")]
+        [ValidateSet("TeamsAddinFix","ClearTeamsCache")]
         [string]$Options,
         [ValidateSet("all","teams")]
         [string]$cacheType,
@@ -174,6 +174,8 @@ function MSTeamsReinstallFull {
     # }
     function StartApp {
         Start-Sleep 5
+        #Reload PATH environment variables
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
         if ($DeploymentType -in "MSIX", "BootStrap") {
             $AppPath = Get-Command -Name "ms-teams.exe" | Select-Object -ExpandProperty Source
         } else {
@@ -221,6 +223,11 @@ function MSTeamsReinstallFull {
             }
             }
         }
+        if ($Options -eq "ClearTeamsCache"){
+            $AppPath = Get-Command -Name "ms-teams.exe" | Select-Object -ExpandProperty Source
+            Write-Host "Starting MS Teams" -ForegroundColor Green
+            Start-Process $AppPath
+        }        
     }
     function TeamsAddinFix {
         param (
@@ -264,9 +271,17 @@ function MSTeamsReinstallFull {
         }
         # write-host "Deregistring Microsoft.Teams.AddinLoader.dll" -ForegroundColor Yellow
         # start-sleep 5
-        regsvr32.exe /U "$teamsdll" /s
-        write-host "Registring Microsoft.Teams.AddinLoader.dll" -ForegroundColor Green
-        regsvr32.exe /n /i:user "$teamsdll" /s
+        $dllExist = Test-Path $teamsdll
+        if ($dllExist) {
+            regsvr32.exe /U "$teamsdll" /s
+            write-host "Registring Microsoft.Teams.AddinLoader.dll" -ForegroundColor Green
+            regsvr32.exe /n /i:user "$teamsdll" /s
+        }
+        else {
+            Write-Host "Teams Meeting Add-ins DLL is not exist!" -ForegroundColor Red
+            return
+        }
+
         # Write-Host "Done"
         
         # Check if Microsoft Teams add-ins for Outlook are enabled
@@ -432,10 +447,19 @@ if ($Resiliency) {
     }
     function TeamsUninstall {
         $NewMSTeams = Get-AppxPackage -Name MSTeams
+        $TeamsProgramData = $NewMSTeams.InstallLocation
+        $TeamsProgramDataCheck = Test-Path $InstalledLocation\*
+
         try {
         if ($NewMSTeams){
         Write-Host "Uninstalling New Teams process" -ForegroundColor Yellow
         Remove-AppxPackage $NewMSTeams
+            if ($TeamsProgramDataCheck) {
+                Write-Host "$TeamsProgramData is still exist. Attempting to delete. Will ask for elevation"
+                $ScriptBlock = {Remove-Item $TeamsProgramData\* -Force -Recurse}
+                Start-Process PowerShell.exe -ArgumentList "-noprofile -ExecutionPolicy Bypass -command $ScriptBlock" -verb RunAs
+            }
+        
         }
         }
         catch {
@@ -613,6 +637,11 @@ if ($Resiliency) {
             KillApp
             TeamsAddinFix
         }
+        ClearTeamsCache {
+            KillApp
+            ClearCache -cacheType $cacheType
+            StartApp
+        }
     }
     Read-Host "Press Enter to return"
     break
@@ -635,6 +664,8 @@ function ShowServiceMenu {
             # $Menu2SubMenuTitle = "[Menu2SubMenuTitle]"
             #     $Menu2Option1 = "Menu2Option1"
             #     $Menu2Option2 = "Menu2Option2"
+            $Menu3 = "MS Teams Clear Cache"
+
     $quit = $false
     # $pswho = $env:USERNAME
     # Write-Host "Enter your admin account for Active Directory. This will be use as the credentials to perform password reset." -ForegroundColor Cyan
@@ -649,14 +680,14 @@ function ShowServiceMenu {
         Write-Host -foregroundcolor White " $Menu1"
         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
         Write-Host -foregroundcolor White " $Menu2"
-        # Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
-        # Write-Host -foregroundcolor White " $Menu3"
+        Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
+        Write-Host -foregroundcolor White " $Menu3"
         # Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "4"; Write-Host -foregroundcolor White -NoNewline "]"; `
         # Write-Host -foregroundcolor White " $Menu4"
         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
         Write-Host -foregroundcolor White " Quit"
         Write-Host
-        $choice = Read-Host "Enter Selection [1]-[2] or press Q to quit"
+        $choice = Read-Host "Enter Selection [1]-[3] or press Q to quit"
     
         switch ($choice) {
             # '1' {
@@ -780,12 +811,12 @@ function ShowServiceMenu {
             #         continue
             #     }
             # }
-            # '3' {
-            #     Clear-Host
-            #     Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #     MSTeamsReinstallFull -DeploymentType BootStrap -cacheType teams
-            #     $prompt = Read-Host "Type Q to go back to $Menu1 "
-            # }
+            '3' {
+                Clear-Host
+                Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
+                MSTeamsReinstallFull -Options ClearTeamsCache -cacheType teams
+                $prompt = Read-Host "Type Q to go back to $Menu1 "
+            }
             '2' {
                 Clear-Host
                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
