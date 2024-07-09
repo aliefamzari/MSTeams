@@ -712,108 +712,6 @@ function ShowServiceMenu {
         $choice = Read-Host "Enter Selection [1]-[3] or press Q to quit"
     
         switch ($choice) {
-            # '1' {
-            #     $Menu1SubMenu = $true
-            #     while ($Menu1SubMenu) {
-            #         Clear-Host
-            #         Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #         Write-Host -foregroundcolor Cyan `n"$Menu1SubMenuTitle" 
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "1"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " $Menu1Option1"
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " $Menu1Option2"
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "3"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " $Menu1Option3"
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "4"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " $Menu1Option4"
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " Back to Main Menu"
-            #         Write-Host
-            #         $Menu1SubmenuChoice = Read-Host "Enter Select 1-2 or press Q to go back to Main Menu"
-    
-            #         switch ($Menu1SubmenuChoice) {
-            #             '1' {
-            #                 Clear-Host
-            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #                 # Write-Host "Menu1Choice1"
-            #                 MSTeamsReinstallFull -DeploymentType MSIX
-            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
-            #                 if ($prompt -eq 'Q') {
-            #                     continue
-            #                 }
-            #             }
-            #             '2' {
-            #                 Clear-Host
-            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #                 MSTeamsReinstallFull -DeploymentType Classic
-            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
-            #                 if ($prompt -eq 'Q') {
-            #                     continue
-            #                 }
-            #             }
-            #             '3' {
-            #                 Clear-Host
-            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #                 MSTeamsReinstallFull -DeploymentType BootStrap
-            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
-            #             }
-            #             '4' {
-            #                 Clear-Host
-            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #                 MSTeamsReinstallFull -Options TeamsAddinFix
-            #                 $prompt = Read-Host "Type Q to go back to $Menu1 "
-            #             }
-            #             'Q' {
-            #                 $Menu1SubMenu = $false
-            #                 $quit = $false
-            #             }
-            #         }
-            #     }
-            # }
-            # '2' {
-            #     $Menu2SubMenu = $true
-            #     while ($Menu2SubMenu) {
-            #         Clear-Host
-            #         Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #         Write-Host -foregroundcolor Cyan "$Menu2SubMenuTitle" 
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "1"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " $Menu2Option1"
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "2"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " $Menu2Option2"
-            #         Write-Host -foregroundcolor White -NoNewline "`n["; Write-Host -foregroundcolor Cyan -NoNewline "Q"; Write-Host -foregroundcolor White -NoNewline "]"; `
-            #         Write-Host -foregroundcolor White " Back to Main Menu"
-            #         Write-Host
-            #         $Menu2SubmenuChoice = Read-Host "Enter Select 1-2 or press Q to go back to Main Menu"
-
-            #         switch ($Menu2SubmenuChoice) {
-            #             '1' {
-            #                 Clear-Host
-            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #                 Write-Host "Menu2Choice1"
-            #                 $prompt = Read-Host "Type Q to go back to $Menu2 "
-            #                 if ($prompt -eq 'Q') {
-            #                     continue
-            #                 }
-            #             }
-            #             '2' {
-            #                 Clear-Host
-            #                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #                 Write-Host "Menu2Choice2"
-            #                 $prompt = Read-Host "Type Q to go back to $Menu2 "
-            #                 if ($prompt -eq 'Q') {
-            #                     continue
-            #                 }
-            #             }
-            #             # '3' {
-            #             #     $Menu2SubMenu = $false
-            #             # }
-            #             'Q' {
-            #                 $Menu2SubMenu = $false
-            #                 $quit = $false
-            #             }
-            #         }
-            #     }
-            # }
             '1' {
                 Clear-Host
                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
@@ -824,15 +722,6 @@ function ShowServiceMenu {
                     continue
                 }
             }
-            # '2' {
-            #     Clear-Host
-            #     Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
-            #     MSTeamsReinstallFull -DeploymentType Classic -cacheType teams
-            #     $prompt = Read-Host "Type Q to go back to $Menu1 "
-            #     if ($prompt -eq 'Q') {
-            #         continue
-            #     }
-            # }
             '3' {
                 Clear-Host
                 Write-Host -foregroundcolor White "`n`t`t $MainTitle`n"
