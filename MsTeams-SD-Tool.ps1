@@ -31,20 +31,7 @@
         Repository: https://github.com/aliefamzari/MSTeams
         Author: Alif Amzari, ALMAZ
         Encoding: UTF-8 with BOM
-        Previous Author: XSIOL, TOBKO
-        Known issues:
-            1.  Teams Addin for Outlook   
-                The current New MS Teams deployment package (Bootstrap and MSIX),
-                do not include MS Teams Addin for Outlook. When Classic Teams
-                removed, the folder contains DLL for the Addins get removed too.
-                To overcome this, without downloading both classic and New Teams
-                during the deployment, the scrip will take a backup of current
-                $env:LOCALAPPDATA\Microsoft\TeamsMeetingAddin. If there folder
-                is missing or empty, the script will stop and ask to manually
-                install Teams Classic. 
-            2. Bootstrap installation need elevation
-                The Classic teams executables and MSIX package pass UAC or EPM check.
-                Possible cause is additional digital signature embedded into the executables. 
+        Version: 1.0      
 
         ===================================================================
 #>
