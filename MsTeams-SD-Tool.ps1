@@ -478,6 +478,9 @@ function MSTeamsReinstallFull {
             if ($TeamsProgramDataCheck) {
                 Write-Host "$TeamsProgramData is still exist."
             }
+            else {
+                write-host "New MSTeams Uninstall"
+            }
         
         }
         }
