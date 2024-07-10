@@ -507,6 +507,36 @@ function MSTeamsReinstallFull {
         Write-Error -ErrorRecord $_
         }
     }
+    function TeamsUninstallBootStrap {
+        Write-Host "Uninstalling MSTeams Machine-Wide" -ForegroundColor Magenta
+        try {
+            Unblock-File -Path $InstallerLocation
+            $proc = Start-Process -FilePath $InstallerLocation -ArgumentList "-x" -PassThru
+        }
+        catch {
+            Write-Host "Elevation or EPM error. Script stop" -ForegroundColor Red
+            Break
+        }
+        $proc.WaitForExit()
+
+
+        Write-Host "Uninstalling MS Teams Classic if exist" -ForegroundColor Magenta
+        try {
+            Unblock-File -Path $InstallerLocation
+            $proc = Start-Process -FilePath $InstallerLocation -ArgumentList "-u" -PassThru
+        }
+        catch {
+            Write-Host "Elevation or EPM error. Script stop" -ForegroundColor Red
+            Break
+        }
+        $proc.WaitForExit()
+
+
+            }
+
+
+            
+    
     function RestoreTeamsAddinBackup {
         Write-Host "Restoring TeamsAddinDLL backup" -ForegroundColor Green
         if (Test-Path $TeamsMeetingAddinDir) {
@@ -611,7 +641,7 @@ function MSTeamsReinstallFull {
                 KillApp
                 # BackupTeamsAddin
                 DownloadTeams
-                TeamsUninstall
+                TeamsUninstallBootStrap
                 UninstallTeamsAddins
                 ClearCache -cacheType $cacheType
                 BootStrapInstall
@@ -629,7 +659,7 @@ function MSTeamsReinstallFull {
                 KillApp
                 # BackupTeamsAddin
                 DownloadTeams
-                TeamsUninstall
+                TeamsUninstallBootStrap
                 UninstallTeamsAddins
                 ClearCache -cacheType $cacheType
                 MSIXInstall
