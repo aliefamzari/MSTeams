@@ -520,7 +520,7 @@ function MSTeamsReinstallFull {
         $proc.WaitForExit()
 
 
-        Write-Host "Uninstalling MS Teams Classic if exist" -ForegroundColor Magenta
+        Write-Host "Uninstalling Teams Classic if exist" -ForegroundColor Magenta
         try {
             Unblock-File -Path $InstallerLocation
             $proc = Start-Process -FilePath $InstallerLocation -ArgumentList "-u" -PassThru
@@ -530,13 +530,7 @@ function MSTeamsReinstallFull {
             Break
         }
         $proc.WaitForExit()
-
-
-            }
-
-
-            
-    
+    }
     function RestoreTeamsAddinBackup {
         Write-Host "Restoring TeamsAddinDLL backup" -ForegroundColor Green
         if (Test-Path $TeamsMeetingAddinDir) {
@@ -621,7 +615,6 @@ function MSTeamsReinstallFull {
             }
         }
     }
-
     function UninstallTeamsAddins {
         $Program = Get-WmiObject -Class Win32_Product | Where-Object { $_.IdentifyingNumber -match "{A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91}"}
         if ($Program) {
