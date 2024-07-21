@@ -31,7 +31,7 @@
         Repository: https://github.com/aliefamzari/MSTeams
         Author: Alif Amzari, ALMAZ
         Encoding: UTF-8 with BOM
-        Version: 1.0      
+        Version: 1.1      
 
         ===================================================================
 #>
