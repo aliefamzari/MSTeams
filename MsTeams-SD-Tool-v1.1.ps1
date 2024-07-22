@@ -295,7 +295,7 @@ function MSTeamsReinstallFull {
 
             Write-Host "Done Registring MS TeamsAddin!" -ForegroundColor Green
         }
-        function LoadBeheavior {
+        function LoadBehavior {
             # Check if Microsoft Teams add-ins for Outlook are enabled
             $TeamsMeetingAddinRegPath = "HKCU:\SOFTWARE\Microsoft\Office\Outlook\Addins\TeamsAddin.FastConnect" 
             $FastConnectReg = Get-Item -Path $TeamsMeetingAddinRegPath -ErrorAction SilentlyContinue
@@ -374,7 +374,7 @@ function MSTeamsReinstallFull {
             TMAResiliency
         }
         if ($script:ManualRegister) {
-            LoadBeheavior
+            LoadBehavior
         }
     }
     function BackupTeamsAddin {
