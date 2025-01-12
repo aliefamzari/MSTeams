@@ -176,8 +176,8 @@ function MSTeamsReinstallFull {
                             Start-Process $AppPath
                         }
                         else {
-                            Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
-                            Write-Host "Please re-install again using different deployment method" -ForegroundColor Red
+                            Write-Host "Could not start app automatically" -ForegroundColor Yellow
+                            Write-Host "Please try launch MS Teams manually. If failed, please reinstall again" -ForegroundColor Red
                         }
                         break  # Exit the loop
                     }
