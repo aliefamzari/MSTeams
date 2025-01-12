@@ -143,22 +143,6 @@ function MSTeamsReinstallFull {
         # }
         $proc.WaitForExit()
     }
-    # function StartApp {
-    #     if ($DeploymentType -in "MSIX", "BootStrap") {
-    #         $AppPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\ms-teams.exe"
-    #     } else {
-    #         $AppPath = "$env:APPDATA\Microsoft\Teams\Teams.exe"
-    #     }
-    #     $ExeExist = Test-Path $AppPath
-    #     if ($ExeExist) {
-    #         Write-Host "Starting MS Teams" -ForegroundColor Green
-    #         Start-Process $AppPath
-    #     }
-    #     else {
-    #         Write-Host "Installation Failed. App Could not start" -ForegroundColor Red
-    #         Write-Host "Please re-install again using different deployment method" -ForegroundColor Red
-    #     }
-    # }
     function StartApp {
         Start-Sleep 5
         #Reload PATH environment variables
@@ -621,6 +605,27 @@ function MSTeamsReinstallFull {
             Write-Host "Uninstalling Teams Addins for Outlook" -ForegroundColor Yellow
             $Program.uninstall() |Out-Null
         }
+    }
+    function RemoveTeamsInstaller {
+        # List of files to delete
+        Write-Host "Cleanup. Deleting installer from download location." -ForegroundColor Magenta
+        $filesToDelete = @(
+            "MSTeams-x64.msix",
+            "MSTeams-x86.msix",
+            "teamsbootstrapper.exe"
+        )
+    
+        # Loop through each file and delete if it exists
+        foreach ($file in $filesToDelete) {
+            $filePath = Join-Path -Path $InstallerDir -ChildPath $file
+            if (Test-Path -Path $filePath) {
+                Remove-Item -Path $filePath -Force
+                Write-Host "Deleted: $filePath" -ForegroundColor Magenta
+            } else {
+                Write-Host "File not found: $filePath" -ForegroundColor Yellow
+            }
+        }
+        Write-Host "Cleanup completed" -ForegroundColor Magenta
     }
     #EndRegion Function
     
